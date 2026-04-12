@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boutique del Fitness — Annamaria Pollio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #D4537E;
+    --pink-light: #FBEAF0;
+    --pink-mid: #F4C0D1;
+    --pink-dark: #72243E;
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --teal-dark: #085041;
+    --purple: #7F77DD;
+    --purple-light: #EEEDFE;
+    --purple-dark: #3C3489;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --gray: #888780;
+    --gray-light: #F1EFE8;
+    --bg: #FDF8F6;
+    --surface: #FFFFFF;
+    --text: #1a1510;
+    --text-muted: #7a7068;
+    --border: rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--pink);
+    letter-spacing: 0.01em;
+  }
+  .user-tag {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+  .water-tracker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #EBF6FF;
+    border-radius: 20px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .water-label { font-size: 12px; color: #185FA5; font-weight: 500; }
+
+  /* TAB NAV */
+  .tab-nav { display:flex; gap:4px; margin-bottom:14px; background:var(--gray-light); border-radius:10px; padding:3px; }
+  .tab-btn { flex:1; border:none; background:none; border-radius:8px; padding:7px 0; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
+  .tab-btn.active { background:var(--surface); color:var(--pink); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+
+  /* NUTRITION */
+  .nutri-day-nav { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:14px; }
+  .nday-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 2px; cursor:pointer; text-align:center; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .nday-btn.active { background:var(--teal); border-color:var(--teal); }
+  .nday-btn.active .nday-l, .nday-btn.active .nday-n { color:white; }
+  .nday-l { font-size:10px; font-weight:500; color:var(--text-muted); display:block; text-transform:uppercase; letter-spacing:0.05em; }
+  .nday-n { font-size:14px; font-weight:500; color:var(--text); display:block; margin-top:1px; }
+  .meal-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:10px; }
+  .meal-header { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .meal-icon { font-size:18px; }
+  .meal-name { font-size:14px; font-weight:500; color:var(--text); flex:1; }
+  .meal-time { font-size:11px; color:var(--text-muted); }
+  .meal-arrow { font-size:11px; color:var(--text-muted); transition:transform 0.2s; }
+  .meal-arrow.open { transform:rotate(180deg); }
+  .meal-body { padding:14px 16px; display:none; }
+  .meal-body.open { display:block; }
+  .ingr-title, .steps-title { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:6px; margin-top:10px; }
+  .ingr-row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:0.5px solid var(--border); font-size:13px; }
+  .ingr-row:last-child { border-bottom:none; }
+  .ingr-qty { color:var(--teal); font-weight:500; font-size:12px; }
+  .step-row { display:flex; gap:10px; padding:5px 0; font-size:13px; color:var(--text); line-height:1.5; }
+  .step-num { width:18px; height:18px; border-radius:50%; background:var(--teal-light); color:var(--teal-dark); font-size:10px; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .macro-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:10px; padding-top:8px; border-top:0.5px solid var(--border); }
+  .macro-chip { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:500; }
+  .chip-p { background:var(--pink-light); color:var(--pink-dark); }
+  .chip-c { background:var(--amber-light); color:var(--amber); }
+  .chip-g { background:var(--purple-light); color:var(--purple-dark); }
+  .chip-m { background:var(--teal-light); color:var(--teal-dark); }
+  .shop-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:14px; }
+  .shop-card-hdr { padding:12px 16px; border-bottom:1px solid var(--border); font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); }
+  .shop-cat { padding:10px 16px; border-bottom:0.5px solid var(--border); }
+  .shop-cat:last-child { border-bottom:none; }
+  .shop-cat-name { font-size:11px; font-weight:500; color:var(--pink); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+  .shop-item { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; }
+  .shop-item-qty { color:var(--text-muted); font-size:12px; }
+  .nutri-tip { background:var(--teal-light); border-radius:12px; padding:10px 14px; font-size:12px; color:var(--teal-dark); margin-bottom:14px; line-height:1.6; }
+  .bmr-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:14px; }
+  .bmr-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); font-size:13px; }
+  .bmr-row:last-child { border-bottom:none; }
+  .bmr-val { font-weight:500; color:var(--teal); }
+
+  /* WEEK NAV */
+  .week-nav {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .day-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 4px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .day-btn:hover { border-color: var(--pink-mid); }
+  .day-btn.active {
+    background: var(--pink);
+    border-color: var(--pink);
+  }
+  .day-btn.active .day-letter,
+  .day-btn.active .day-num { color: white; }
+  .day-btn.rest-day { background: var(--gray-light); }
+  .day-btn.full-rest { opacity: 0.5; }
+  .day-letter { font-size: 10px; font-weight: 500; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+  .day-num { font-size: 15px; font-weight: 500; color: var(--text); display: block; margin-top: 2px; }
+  .day-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    margin: 4px auto 0;
+    background: transparent;
+  }
+  .day-btn.has-workout .day-dot { background: var(--pink); }
+  .day-btn.active .day-dot { background: rgba(255,255,255,0.7); }
+  .day-btn.done-day .day-dot { background: var(--teal); }
+
+  /* MAIN */
+  .main { padding: 20px 20px 80px; max-width: 680px; margin: 0 auto; }
+
+  /* DATE HEADLINE */
+  .date-headline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .date-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); }
+  .date-sub { font-size: 13px; color: var(--text-muted); }
+
+  /* TYPE BADGE */
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 18px;
+  }
+  .badge-gym { background: var(--pink-light); color: var(--pink-dark); }
+  .badge-rest { background: var(--gray-light); color: var(--gray); }
+  .badge-fullrest { background: var(--amber-light); color: var(--amber); }
+
+  /* SECTION CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .card-complete-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    font-weight: 500;
+    display: none;
+  }
+
+  /* HOME TOGGLE */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--purple-light);
+  }
+  .toggle-label { font-size: 13px; color: var(--purple-dark); font-weight: 500; flex: 1; }
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: #D3D1C7;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--purple); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  /* EXERCISE ROW */
+  .ex-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-row:hover { background: var(--bg); }
+  .ex-row.done { opacity: 0.5; }
+  .ex-row.done .ex-name { text-decoration: line-through; }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .ex-row.done .check-box {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .check-icon { display: none; }
+  .ex-row.done .check-icon { display: block; }
+
+  .ex-content { flex: 1; min-width: 0; }
+  .ex-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .ex-meta { font-size: 12px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px; }
+  .meta-pill {
+    background: var(--bg);
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .ex-note {
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--pink-dark);
+    background: var(--pink-light);
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: none;
+  }
+  .ex-note.visible { display: block; }
+
+  /* HOME VERSION */
+  .home-version { display: none; }
+  .home-version.active { display: block; }
+  .gym-version.hidden { display: none; }
+
+  .home-box {
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .home-icon { font-size: 32px; margin-bottom: 10px; }
+  .home-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); margin-bottom: 6px; }
+  .home-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+  .video-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--purple);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .video-btn-note { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  /* WELLNESS */
+  .wellness-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .wellness-row:last-child { border-bottom: none; }
+  .wellness-row:hover { background: var(--bg); }
+  .wellness-row.done { opacity: 0.5; }
+  .wellness-row.done .wellness-name { text-decoration: line-through; }
+  .wellness-time {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 52px;
+    padding-top: 2px;
+  }
+  .wellness-content { flex: 1; }
+  .wellness-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .wellness-note { font-size: 12px; color: var(--text-muted); }
+  .wellness-check {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .wellness-row.done .wellness-check { background: var(--teal); border-color: var(--teal); }
+
+  /* HYDRATION REMINDER */
+  .hydration-card {
+    background: linear-gradient(135deg, #EBF7FF 0%, #E1F5EE 100%);
+    border: 1px solid rgba(29,158,117,0.2);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hydro-icon { font-size: 24px; }
+  .hydro-text { flex: 1; }
+  .hydro-title { font-size: 13px; font-weight: 500; color: var(--teal-dark); }
+  .hydro-sub { font-size: 12px; color: var(--teal); }
+  .hydro-glasses {
+    display: flex;
+    gap: 4px;
+  }
+  .glass-btn {
+    width: 22px; height: 22px;
+    background: white;
+    border: 1px solid rgba(29,158,117,0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+    color: var(--teal);
+  }
+  .glass-btn.filled { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* SUPPS */
+  .supps-card {
+    background: var(--amber-light);
+    border: 1px solid rgba(186,117,23,0.2);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .supps-card.done-card { opacity: 0.5; }
+  .supp-pills { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .supp-pill {
+    font-size: 11px;
+    background: white;
+    color: var(--amber);
+    border: 1px solid rgba(186,117,23,0.25);
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .supp-check {
+    width: 24px; height: 24px;
+    border: 1.5px solid rgba(186,117,23,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .supps-card.done-card .supp-check { background: var(--amber); border-color: var(--amber); }
+
+  /* PROGRESS BAR */
+  .progress-wrap { padding: 10px 16px 14px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-label { font-size: 12px; color: var(--text-muted); }
+  .progress-pct { font-size: 12px; font-weight: 500; color: var(--pink); }
+  .progress-bar { height: 4px; background: var(--gray-light); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--pink); border-radius: 4px; transition: width 0.3s; }
+
+  /* REST DAY VIEW */
+  .rest-view { padding: 24px 16px; text-align: center; }
+  .rest-icon { font-size: 40px; margin-bottom: 10px; }
+  .rest-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); margin-bottom: 6px; }
+  .rest-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+  /* BOTTOM DONE BUTTON */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+  }
+  .done-btn {
+    width: 100%;
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    max-width: 640px;
+    margin: 0 auto;
+    display: block;
+  }
+  .done-btn:hover { background: var(--pink-dark); }
+  .done-btn:active { transform: scale(0.98); }
+  .done-btn.completed { background: var(--teal); }
+
+  /* CELEBRATION */
+  .celebration {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .celebration.show { display: flex; }
+  .cel-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    max-width: 340px;
+    width: 100%;
+  }
+  .cel-icon { font-size: 48px; margin-bottom: 12px; }
+  .cel-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--pink); margin-bottom: 8px; }
+  .cel-text { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+  .cel-btn {
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  svg.check-svg { width: 12px; height: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="brand">Boutique del Fitness</div>
+      <div class="user-tag">Annamaria Pollio · Programma 3 mesi</div>
+    </div>
+    <div class="water-tracker" onclick="cycleWater()">
+      <span style="font-size:16px;">💧</span>
+      <span class="water-label" id="waterLabel">0 / 1925ml</span>
+    </div>
+  </div>
+  <div class="week-nav" id="weekNav"></div>
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabAllen" onclick="switchTab('allenamento')">🏋️ Allenamento</button>
+    <button class="tab-btn" id="tabNutri" onclick="switchTab('nutrizione')">🥗 Nutrizione</button>
+  </div>
+</div>
+
+<div class="main" id="mainContent"></div>
+<div class="main" id="nutriContent" style="display:none;"></div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="done-btn" id="doneBtn" onclick="markDayComplete()">Segna come completato</button>
+</div>
+
+<div class="celebration" id="celebration">
+  <div class="cel-card">
+    <div class="cel-icon">🎉</div>
+    <div class="cel-title">Bravissima!</div>
+    <div class="cel-text" id="celText">Hai completato la giornata. Continua così — ogni allenamento conta!</div>
+    <button class="cel-btn" onclick="closeCelebration()">Continua</button>
+  </div>
+</div>
+
+<script>
+const DAYS = [
+  {
+    label:'Sab', date:12, month:'Apr', name:'Giorno 1',
+    type:'workout',
+    workoutName:'Lower — Focus Glutei',
+    homeVideo:'Lower focus glutei',
+    exercises:[
+      {id:'e1',name:'Riscaldamento Lower',sets:'',reps:'',rest:'',note:'Completa il warm-up prima di iniziare'},
+      {id:'e2',name:'Attivazione Glutei',sets:'',reps:'1 micro-workout a scelta',rest:'',note:'Scegli uno dei 3 micro-allenamenti dal tuo protocollo'},
+      {id:'e3',name:'Crab Walk — banda alta e bassa',sets:'3',reps:'20 passi per banda',rest:'Super set',note:'Super set con Sumo Squat · 90s recupero totale'},
+      {id:'e4',name:'Sumo Squat',sets:'3',reps:'15',rest:'90s',note:'Discesa 3 sec · salita 3 sec · aumenta il peso appena possibile'},
+      {id:'e5',name:'Kass Glute Bridge',sets:'3',reps:'10',rest:'1 min',note:'2 sec di isometria ad ogni ripetizione · usa bilanciere · aumenta peso dopo 2 settimane'},
+      {id:'e6',name:'Slanci posteriori al cavo',sets:'3',reps:'15 per gamba',rest:'No stop',note:'Continua ad alternare le gambe senza fermarti'},
+      {id:'e7',name:'Plank',sets:'3',reps:'1 min',rest:'1 min',note:''},
+      {id:'e8',name:'Defaticamento Lower',sets:'',reps:'',rest:'',note:'Completa sempre il cool-down'},
+    ],
+    wellness:[
+      {id:'w1',time:'Mattino',name:'Vacuum Addominale (1)',note:'A stomaco vuoto · 5 minuti'},
+      {id:'w2',time:'Sera',name:'Rilascio Miofasciale (1)',note:'Post-workout · se hai dolori muscolari'},
+    ]
+  },
+  {
+    label:'Dom', date:13, month:'Apr', name:'Giorno 2',
+    type:'workout',
+    workoutName:'Upper Body',
+    homeVideo:'Upper body',
+    exercises:[
+      {id:'f1',name:'Riscaldamento Upper',sets:'',reps:'',rest:'',note:''},
+      {id:'f2',name:'Pulley',sets:'4',reps:'15-12-10-10',rest:'1 min',note:'Aumenta il peso al diminuire delle ripetizioni · mantieni contrazione 2 sec'},
+      {id:'f3',name:'Lat Machine',sets:'4',reps:'10',rest:'90s',note:'Aumenta il peso appena possibile'},
+      {id:'f4',name:'Rematore Singolo',sets:'3',reps:'12 per braccio',rest:'Super set',note:'Super set con Dips su rialzo · 1 min recupero totale'},
+      {id:'f5',name:'Dips su rialzo',sets:'3',reps:'15',rest:'1 min',note:''},
+      {id:'f6',name:'Distensioni braccio al cavo',sets:'3',reps:'12',rest:'45s',note:'Tricipiti · isolamento'},
+      {id:'f7',name:'Defaticamento Upper',sets:'',reps:'',rest:'',note:''},
+    ],
+    wellness:[
+      {id:'fw1',time:'Mattino',name:'Apertura Linfonodi (1)',note:''},
+      {id:'fw2',time:'Sera',name:'Microcircolo Passiva (1)',note:'Ideale se hai le gambe appesantite'},
+    ]
+  },
+  {
+    label:'Lun', date:14, month:'Apr', name:'Giorno 3',
+    type:'rest',
+    wellness:[
+      {id:'sw1',time:'Mattino',name:'Deep Core (1)',note:''},
+      {id:'sw2',time:'Sera',name:'Massaggio Linfodrenante (1)',note:'Massaggio serale per stimolare il drenaggio'},
+    ]
+  },
+  {
+    label:'Mar', date:15, month:'Apr', name:'Giorno 4',
+    type:'rest',
+    wellness:[
+      {id:'dw1',time:'Mattino',name:'Dry Brushing (1)',note:'Prima della doccia per esfoliare e drenare'},
+      {id:'dw2',time:'Sera',name:'Stretching e Allungamento (1)',note:'Lontano dall\'allenamento con i pesi'},
+    ]
+  },
+  {
+    label:'Mer', date:16, month:'Apr', name:'Giorno 5',
+    type:'workout',
+    workoutName:'Lower + Spalle',
+    homeVideo:'Lower + spalle',
+    exercises:[
+      {id:'l1',name:'Riscaldamento Lower + Spalle',sets:'',reps:'',rest:'',note:''},
+      {id:'l2',name:'Attivazione Glutei',sets:'',reps:'1 micro-workout a scelta',rest:'',note:''},
+      {id:'l3',name:'Hip Thrust',sets:'4',reps:'15-12-10-10',rest:'1 min',note:'10 sec di isometria all\'ultima ripetizione · aumenta il carico al diminuire delle reps'},
+      {id:'l4',name:'Affondi posteriori',sets:'3',reps:'10 per gamba',rest:'Super set',note:'Super set con Abductor Machine · 1:30 recupero totale'},
+      {id:'l5',name:'Abductor Machine',sets:'3',reps:'15',rest:'1:30',note:'Apertura veloce · chiusura di 3 sec'},
+      {id:'l6',name:'Alzate laterali',sets:'3',reps:'12',rest:'45s',note:'Spalle'},
+      {id:'l7',name:'Lento avanti',sets:'4',reps:'10',rest:'1 min',note:'Shoulder press'},
+      {id:'l8',name:'Defaticamento Lower + Spalle',sets:'',reps:'',rest:'',note:''},
+    ],
+    wellness:[
+      {id:'lw1',time:'Mattino',name:'Rinforzo del Piede (1)',note:''},
+      {id:'lw2',time:'Sera',name:'Apertura Spalle (1)',note:''},
+    ]
+  },
+  {
+    label:'Gio', date:17, month:'Apr', name:'Giorno 6',
+    type:'rest',
+    wellness:[
+      {id:'mw1',time:'Mattino',name:'Microcircolo Attiva (1)',note:'Giorno di riposo — attiva la circolazione linfatica'},
+      {id:'mw2',time:'Sera',name:'Mobilità della Colonna (1)',note:''},
+    ]
+  },
+  {
+    label:'Ven', date:18, month:'Apr', name:'Giorno 7',
+    type:'fullrest',
+    wellness:[]
+  }
+];
+
+let currentDay = 1;
+let homeMode = false;
+let checked = {};
+let completedDays = {0: true};
+let glasses = 0;
+let suppsChecked = false;
+
+function getKey(dayIdx, id) { return `d${dayIdx}_${id}`; }
+
+function renderNav() {
+  const nav = document.getElementById('weekNav');
+  nav.innerHTML = '';
+  DAYS.forEach((d,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' +
+      (i === currentDay ? ' active' : '') +
+      (d.type === 'rest' || d.type === 'fullrest' ? ' rest-day' : '') +
+      (d.type === 'fullrest' ? ' full-rest' : '') +
+      (completedDays[i] ? ' done-day' : '') +
+      (d.type === 'workout' ? ' has-workout' : '');
+    btn.innerHTML = `<span class="day-letter">${d.label}</span><span class="day-num">${d.date}</span><div class="day-dot"></div>`;
+    btn.onclick = () => { currentDay = i; render(); };
+    nav.appendChild(btn);
+  });
+}
+
+function renderMain() {
+  const d = DAYS[currentDay];
+  const main = document.getElementById('mainContent');
+  let html = '';
+
+  html += `<div class="date-headline">
+    <div class="date-title">${d.label} ${d.date} ${d.month}</div>
+    <div class="date-sub">${d.name}</div>
+  </div>`;
+
+  if (d.type === 'fullrest') {
+    html += `<span class="type-badge badge-fullrest">Riposo totale</span>`;
+    html += `<div class="card"><div class="rest-view">
+      <div class="rest-icon">🌙</div>
+      <div class="rest-title">Riposo completo</div>
+      <div class="rest-desc">Oggi nessun allenamento e nessun rituale.<br>Dormi bene, idratati, e lascia recuperare il corpo.<br><br>Ci vediamo domani!</div>
+    </div></div>`;
+    document.getElementById('bottomBar').style.display = 'none';
+  } else if (d.type === 'rest') {
+    html += `<span class="type-badge badge-rest">Recupero attivo</span>`;
+    html += renderWellnessCard(d);
+    document.getElementById('bottomBar').style.display = 'block';
+  } else {
+    html += `<span class="type-badge badge-gym">🏋️ ${d.workoutName}</span>`;
+    html += renderWorkoutCard(d);
+    html += renderWellnessCard(d);
+    document.getElementById('bottomBar').style.display = 'block';
+  }
+
+  html += renderSupps(d);
+
+  main.innerHTML = html;
+
+  attachExerciseClicks(d);
+  attachWellnessClicks(d);
+  attachSuppsClick();
+  if (d.type === 'workout') attachToggle(d);
+
+  updateProgress(d);
+  updateDoneBtn();
+  updateWaterLabel();
+}
+
+function renderWorkoutCard(d) {
+  let exRows = '';
+  d.exercises.forEach(e => {
+    const key = getKey(currentDay, e.id);
+    const done = checked[key];
+    const metas = [];
+    if (e.sets) metas.push(`${e.sets} serie`);
+    if (e.reps) metas.push(e.reps);
+    if (e.rest) metas.push(`${e.rest} recupero`);
+    exRows += `<div class="ex-row${done?' done':''}" data-key="${key}">
+      <div class="check-box">
+        <svg class="check-svg" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="check-icon" d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="ex-content">
+        <div class="ex-name">${e.name}</div>
+        ${metas.length ? `<div class="ex-meta">${metas.map(m=>`<span class="meta-pill">${m}</span>`).join('')}</div>` : ''}
+        ${e.note ? `<div class="ex-note${done?' visible':''}">${e.note}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  return `<div class="card" id="workoutCard">
+    <div class="card-header">
+      <div class="card-title">Allenamento</div>
+      <span class="card-complete-badge" id="workoutBadge">Completato ✓</span>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">🏠 Allenamento da casa</span>
+      <label class="toggle">
+        <input type="checkbox" id="homeToggle" ${homeMode?'checked':''} onchange="toggleHome(this)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="gym-version${homeMode?' hidden':''}" id="gymVersion">${exRows}</div>
+    <div class="home-version${homeMode?' active':''}" id="homeVersion">
+      <div class="home-box">
+        <div class="home-icon">📱</div>
+        <div class="home-title">${d.homeVideo}</div>
+        <div class="home-desc">Segui il video del tuo protocollo per questa sessione da casa.<br>Stessa intensità, stesso obiettivo.</div>
+        <button class="video-btn">▶ Apri video (link da aggiungere)</button>
+        <div class="video-btn-note">Apri il tuo PDF del protocollo per accedere al video</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Progresso allenamento</span>
+        <span class="progress-pct" id="exPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="exBar" style="width:0%"></div></div>
+    </div>
+  </div>`;
+}
+
+function renderWellnessCard(d) {
+  if (!d.wellness || !d.wellness.length) return '';
+  let rows = '';
+  d.wellness.forEach(w => {
+    const key = getKey(currentDay, w.id);
+    const done = checked[key];
+    rows += `<div class="wellness-row${done?' done':''}" data-wkey="${key}">
+      <div class="wellness-time">${w.time}</div>
+      <div class="wellness-content">
+        <div class="wellness-name">${w.name}</div>
+        ${w.note ? `<div class="wellness-note">${w.note}</div>` : ''}
+      </div>
+      <div class="wellness-check">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+          <path class="check-icon" d="M2 6L5 9L10 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>`;
+  });
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Rituali di benessere</div>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function renderSupps(d) {
+  if (d.type === 'fullrest') return '';
+  return `<div class="supps-card${suppsChecked?' done-card':''}" id="suppsCard">
+    <div class="supp-pills">
+      <span style="font-size:12px;font-weight:500;color:var(--amber);margin-right:4px;">Integratori</span>
+      <span class="supp-pill">Omega 3</span>
+      <span class="supp-pill">Creatina</span>
+      <span class="supp-pill">NAC</span>
+      <span class="supp-pill">Magnesio</span>
+    </div>
+    <div class="supp-check">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M2 6L5 9L10 3" stroke="${suppsChecked?'white':'rgba(186,117,23,0.4)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>`;
+}
+
+function attachExerciseClicks(d) {
+  document.querySelectorAll('.ex-row[data-key]').forEach(row => {
+    row.onclick = () => {
+      const key = row.dataset.key;
+      checked[key] = !checked[key];
+      row.classList.toggle('done', checked[key]);
+      const note = row.querySelector('.ex-note');
+      if (note) note.classList.toggle('visible', checked[key]);
+      updateProgress(d);
+      updateDoneBtn();
+    };
+  });
+}
+
+function attachWellnessClicks(d) {
+  document.querySelectorAll('.wellness-row[data-wkey]').forEach(row => {
+    row.onclick = () => {
+      const key = row.dataset.wkey;
+      checked[key] = !checked[key];
+      row.classList.toggle('done', checked[key]);
+      updateDoneBtn();
+    };
+  });
+}
+
+function attachSuppsClick() {
+  const card = document.getElementById('suppsCard');
+  if (card) card.onclick = () => { suppsChecked = !suppsChecked; renderMain(); };
+}
+
+function attachToggle(d) {
+  const tog = document.getElementById('homeToggle');
+  if (tog) tog.onchange = (e) => { homeMode = e.target.checked; renderMain(); };
+}
+
+function toggleHome(el) { homeMode = el.checked; renderMain(); }
+
+function updateProgress(d) {
+  if (d.type !== 'workout') return;
+  const total = d.exercises.length;
+  const done = d.exercises.filter(e => checked[getKey(currentDay, e.id)]).length;
+  const pct = Math.round((done/total)*100);
+  const bar = document.getElementById('exBar');
+  const pctEl = document.getElementById('exPct');
+  const badge = document.getElementById('workoutBadge');
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (badge) badge.style.display = pct === 100 ? 'inline-block' : 'none';
+}
+
+function updateDoneBtn() {
+  const d = DAYS[currentDay];
+  const btn = document.getElementById('doneBtn');
+  if (!btn) return;
+  if (completedDays[currentDay]) {
+    btn.textContent = '✓ Giornata completata';
+    btn.className = 'done-btn completed';
+  } else {
+    btn.textContent = 'Segna come completato';
+    btn.className = 'done-btn';
+  }
+}
+
+function markDayComplete() {
+  if (completedDays[currentDay]) return;
+  const d = DAYS[currentDay];
+  completedDays[currentDay] = true;
+  renderNav();
+  updateDoneBtn();
+  const cel = document.getElementById('celebration');
+  const celText = document.getElementById('celText');
+  const messages = [
+    'Hai completato la giornata. Ogni sessione ti avvicina ai tuoi obiettivi!',
+    'Ottimo lavoro! La costanza è tutto — continua così.',
+    'Fantastico! Il tuo corpo ti ringrazierà.',
+    'Brava Annamaria! Un altro step verso il risultato.',
+  ];
+  celText.textContent = messages[Math.floor(Math.random()*messages.length)];
+  cel.classList.add('show');
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('show');
+}
+
+let waterGlasses = 0;
+const GLASS_ML = 275;
+const TARGET_ML = 1925;
+const GLASS_COUNT = Math.ceil(TARGET_ML / GLASS_ML);
+
+function buildWaterGlasses() {
+  // simple cycle
+  waterGlasses = (waterGlasses + 1) % (GLASS_COUNT + 1);
+  updateWaterLabel();
+}
+
+function cycleWater() { buildWaterGlasses(); }
+
+function updateWaterLabel() {
+  const el = document.getElementById('waterLabel');
+  if (el) el.textContent = `${waterGlasses * GLASS_ML} / 1925ml`;
+}
+
+
+// ==================== TAB SWITCHING ====================
+let currentTab = 'allenamento';
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabAllen').className = 'tab-btn' + (tab==='allenamento'?' active':'');
+  document.getElementById('tabNutri').className = 'tab-btn' + (tab==='nutrizione'?' active':'');
+  document.getElementById('mainContent').style.display = tab==='allenamento'?'':'none';
+  document.getElementById('bottomBar').style.display = tab==='allenamento'?'':'none';
+  document.getElementById('nutriContent').style.display = tab==='nutrizione'?'':'none';
+  if (tab==='nutrizione') renderNutri();
+}
+
+
+// ==================== NUTRITION DATA (VEGAN + ANIMAL SWAP) ====================
+let currentNDay = 0;
+let showAnimal = false;
+let currentWeekSeed = 0;
+
+// Calculate current week number from Apr 12 2026
+function getWeekNum() {
+  const start = new Date('2026-04-12');
+  const now = new Date();
+  const diff = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+  return Math.max(0, diff);
+}
+
+// Seeded random for consistent weekly plan
+function seededRand(seed, i) {
+  const x = Math.sin(seed * 9301 + i * 49297 + 233720) * 1000000;
+  return x - Math.floor(x);
+}
+
+function pickRand(arr, seed, i) {
+  return arr[Math.floor(seededRand(seed, i) * arr.length)];
+}
+
+const WEEK_LABELS = ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'];
+
+// Protein pools (vegan) — each with matching animal swap
+const PROTEIN_POOL = [
+  { vegan:'Tofu compatto', qty:'160g', prep:'Pressa il tofu 10 min, taglia a cubetti, marina con tamari e aglio, cuoci in padella 8 min.', animal:'Petto di pollo', animalQty:'150g', animalPrep:'Cuoci in padella con olio e aglio, 6–7 min per lato.' },
+  { vegan:'Tempeh', qty:'150g', prep:'Taglia a fette, rosola in padella con olio e salsa di soia per 4 min per lato.', animal:'Salmone', animalQty:'150g', animalPrep:'Cuoci in padella con olio e limone, 3–4 min per lato.' },
+  { vegan:'Ceci cotti', qty:'200g', prep:'Scola e sciacqua. Salta in padella con olio, curcuma e pepe.', animal:'Merluzzo', animalQty:'150g', animalPrep:'Cuoci al vapore o in padella con olio e erbe, 5–6 min.' },
+  { vegan:'Lenticchie cotte', qty:'200g', prep:'Cuoci in brodo con alloro 20 min (o usa quelle in scatola).', animal:'Orata', animalQty:'150g', animalPrep:'Al forno 180°C con olio, limone e capperi, 20 min.' },
+  { vegan:'Edamame (soia)', qty:'180g', prep:'Sbollenta 3 min in acqua salata. Scola e usa sgranati.', animal:'Gamberi', animalQty:'150g', animalPrep:'Salta in padella con aglio e olio, 3 min.' },
+  { vegan:'Fagioli neri', qty:'200g', prep:'Scola, sciacqua, cuoci 5 min in padella con aglio e paprika.', animal:'Tacchino (fesa)', animalQty:'150g', animalPrep:'Cuoci a fette in padella, 3 min per lato.' },
+  { vegan:'Feta di soia', qty:'120g', prep:'Taglia a cubetti, usa a crudo o cuoci leggermente in padella.', animal:'Uova', animalQty:'3 uova', animalPrep:'Strapazza in padella con olio per 3–4 min.' },
+  { vegan:'Seitan', qty:'130g', prep:'Taglia a strisce, cuoci in padella con olio e erbe aromatiche, 5 min.', animal:'Tonno al naturale', animalQty:'120g', animalPrep:'Apri la scatoletta e usa direttamente.' },
+];
+
+// Carb pool
+const CARB_POOL = [
+  { name:'Riso basmati', qty:'75g secco', cook:'Cuoci in acqua salata 10–12 min.' },
+  { name:'Pasta integrale', qty:'80g secca', cook:'Cuoci al dente secondo le istruzioni.' },
+  { name:'Farro', qty:'75g secco', cook:'Cuoci in acqua salata 20–25 min.' },
+  { name:'Quinoa', qty:'70g secca', cook:'Cuoci 15 min (rapporto 1:2 con acqua).' },
+  { name:'Riso nero', qty:'70g secco', cook:'Cuoci 30–35 min in acqua salata.' },
+  { name:'Patate dolci', qty:'200g', cook:'Al forno a 200°C per 25 min o al vapore.' },
+  { name:'Gnocchi di patate integrali', qty:'150g', cook:'Lessali 2–3 min in acqua salata.' },
+  { name:'Orzo perlato', qty:'70g secco', cook:'Cuoci 20 min in acqua salata.' },
+  { name:'Couscous integrale', qty:'70g secco', cook:'Versa acqua bollente (stessa quantità), copri 5 min.' },
+  { name:'Patate comuni', qty:'200g', cook:'Lessa 20 min o cuoci al forno.' },
+];
+
+// Veggie pool (seasonal Apr–May)
+const VEG_POOL = [
+  { name:'Asparagi + pomodorini', prep:'Sbollenta asparagi 5 min, aggiungi pomodorini crudi.' },
+  { name:'Zucchine + spinaci', prep:'Salta in padella con aglio e olio per 5 min.' },
+  { name:'Broccoli + carote', prep:'A vapore 8 min o saltati in padella.' },
+  { name:'Finocchi + radicchio', prep:'Griglia i finocchi a fette, radicchio crudo a lato.' },
+  { name:'Peperoni + cipolla', prep:'Arrostiti in padella con olio e origano, 10 min.' },
+  { name:'Cavolo cappuccio + carote', prep:'Crudi e grattugiati con succo di limone e olio.' },
+  { name:'Melanzane + pomodori', prep:'Grigliate le melanzane, aggiungi pomodori a cubetti.' },
+  { name:'Carciofi + piselli', prep:'Carciofi saltati con piselli in padella, 8 min.' },
+  { name:'Barbabietola + rucola', prep:'Barbabietola cotta a fette, rucola cruda.' },
+  { name:'Zucca + spinaci', prep:'Zucca al forno 20 min, spinaci saltati 3 min.' },
+];
+
+// Fat sources
+const FAT_POOL = [
+  '1 cucchiaio olio evo', '½ avocado', '15g noci', '15g mandorle', '1 cucchiaio tahina', '15g semi misti (chia+lino)', '10g olio evo + 5g pinoli',
+];
+
+// Breakfast pool (all vegan)
+const BREAKFAST_POOL = [
+  { name:'Overnight oats proteici', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di soia',q:'150ml'},{n:'Proteine in polvere vegan (facoltativo)',q:'20g'},{n:'Frutti di bosco',q:'80g'},{n:'Semi di chia',q:'10g'},{n:'Miele d\'agave',q:'1 cucchiaino'}], steps:['Mescola avena, latte di soia e semi di chia la sera prima.','La mattina aggiungi i frutti di bosco e l\'agave.','Riposo in frigo overnight — pronto subito.'], macros:['C: avena','P: latte soia + semi','G: semi chia','M: frutti di bosco'] },
+  { name:'Toast avocado e tofu strapazzato', ingredients:[{n:'Pane integrale',q:'2 fette (70g)'},{n:'Avocado',q:'½'},{n:'Tofu morbido',q:'100g'},{n:'Curcuma, sale nero (kala namak)',q:'q.b.'},{n:'Pomodorini',q:'80g'}], steps:['Sbriciola il tofu in padella con olio, curcuma e sale nero (dà sapore di uovo) per 4–5 min.','Tosta il pane.','Schiaccia l\'avocado sul pane, aggiungi il tofu strapazzato e pomodorini.'], macros:['P: tofu','C: pane integrale','G: avocado','M: curcuma (anti-infiammatoria)'] },
+  { name:'Yogurt di soia con granola e frutta', ingredients:[{n:'Yogurt di cocco o soia',q:'150g'},{n:'Granola proteica',q:'40g'},{n:'Banana',q:'½'},{n:'Mirtilli',q:'60g'},{n:'Burro di arachidi',q:'15g'}], steps:['Versa lo yogurt in una ciotola.','Aggiungi granola, banana a fette, mirtilli.','Aggiungi un cucchiaio di burro di arachidi in cima.'], macros:['P: yogurt soia + arachidi','C: granola + frutta','G: arachidi','M: mirtilli'] },
+  { name:'Smoothie bowl proteico', ingredients:[{n:'Banana congelata',q:'1'},{n:'Latte di mandorla',q:'100ml'},{n:'Spinaci',q:'30g'},{n:'Proteine vegan vaniglia',q:'25g'},{n:'Fiocchi d\'avena (topping)',q:'30g'},{n:'Semi di lino',q:'10g'},{n:'Frutti di bosco (topping)',q:'60g'}], steps:['Frulla banana, latte di mandorla, spinaci e proteine fino a crema densa.','Versa in una ciotola.','Decora con avena, semi di lino e frutti di bosco.'], macros:['P: proteine + spinaci','C: banana + avena','G: semi lino','M: spinaci'] },
+  { name:'Frisella con hummus e verdure', ingredients:[{n:'Frisella integrale',q:'2 (80g)'},{n:'Hummus di ceci',q:'60g'},{n:'Pomodorini',q:'100g'},{n:'Cetriolo',q:'½'},{n:'Olio evo',q:'1 cucchiaio'}], steps:['Ammolla leggermente le friselle in acqua fredda 30 secondi.','Spalma l\'hummus abbondante su entrambe.','Aggiungi pomodorini tagliati, cetriolo e un filo di olio.'], macros:['P: ceci','C: frisella','G: olio','M: verdure crude'] },
+  { name:'Porridge con mela cotta', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di avena',q:'180ml'},{n:'Mela',q:'1 media'},{n:'Cannella',q:'1 pizzico'},{n:'Noci tritate',q:'15g'},{n:'Miele d\'agave',q:'1 cucchiaino'}], steps:['Cuoci la mela a cubetti in padella con cannella e un goccio d\'acqua per 5 min.','Scaldi l\'avena con il latte di avena 3–4 min mescolando.','Servi il porridge con la mela cotta sopra, noci e agave.'], macros:['C: avena + mela','G: noci','M: cannella (stabilizza glicemia)'] },
+  { name:'Pancakes vegan proteici', ingredients:[{n:'Fiocchi d\'avena macinati',q:'60g'},{n:'Banana',q:'1'},{n:'Latte di soia',q:'80ml'},{n:'Lievito per dolci',q:'½ cucchiaino'},{n:'Frutti di bosco',q:'60g'},{n:'Sciroppo d\'acero (facoltativo)',q:'1 cucchiaino'}], steps:['Frulla avena, banana e latte di soia fino a pastella.','Aggiungi il lievito e mescola.','Cuoci in padella antiaderente senza olio, 2–3 min per lato.','Servi con frutti di bosco.'], macros:['C: avena + banana','P: latte soia','G: —','M: frutti di bosco'] },
+];
+
+// Snack pool (vegan)
+const SNACK_POOL = [
+  { name:'Mela + mandorle', ingr:'1 mela + 15g mandorle' },
+  { name:'Carote + hummus', ingr:'2 carote + 40g hummus' },
+  { name:'Yogurt soia + frutta', ingr:'100g yogurt soia + frutto di stagione' },
+  { name:'Gallette + burro arachidi', ingr:'2 gallette + 20g burro di arachidi 100%' },
+  { name:'Frullato mirtilli', ingr:'150ml latte mandorla + 80g mirtilli + 15g proteine vegan' },
+  { name:'Cioccolato fondente + noci', ingr:'20g cioccolato 85% + 15g noci' },
+  { name:'Edamame salati', ingr:'100g edamame sbollentati con sale' },
+  { name:'Datteri + tahina', ingr:'3 datteri Medjool + 1 cucchiaino tahina' },
+  { name:'Kefir di soia + chia', ingr:'150ml kefir di soia + 1 cucchiaino semi di chia' },
+  { name:'Wasa + avocado', ingr:'2 cracker Wasa + ½ avocado schiacciato' },
+];
+
+// Generate a full week of meals based on seed
+function generateWeekMeals(seed) {
+  const days = [];
+  for (let d = 0; d < 7; d++) {
+    const prot = pickRand(PROTEIN_POOL, seed, d);
+    const carb = pickRand(CARB_POOL, seed, d + 10);
+    const veg = pickRand(VEG_POOL, seed, d + 20);
+    const fat = pickRand(FAT_POOL, seed, d + 30);
+    const bfast = pickRand(BREAKFAST_POOL, seed, d + 40);
+    const snack1 = pickRand(SNACK_POOL, seed, d + 50);
+    const snack2 = pickRand(SNACK_POOL, seed, d + 60);
+
+    days.push({
+      breakfast: bfast,
+      snack1: snack1,
+      lunch: buildMeal(prot, carb, veg, fat, 'Pranzo', d, seed),
+      snack2: snack2,
+      dinner: buildMeal(
+        pickRand(PROTEIN_POOL, seed, d + 70),
+        pickRand(CARB_POOL, seed, d + 80),
+        pickRand(VEG_POOL, seed, d + 90),
+        pickRand(FAT_POOL, seed, d + 100),
+        'Cena', d, seed
+      ),
+    });
+  }
+  return days;
+}
+
+function buildMeal(prot, carb, veg, fat, mealName, d, seed) {
+  const isLunch = mealName === 'Pranzo';
+  return {
+    name: mealName,
+    icon: isLunch ? '🍽️' : '🌙',
+    time: isLunch ? '13:00' : '20:00',
+    prot, carb, veg, fat,
+    steps: [
+      carb.cook,
+      veg.prep,
+      prot.prep,
+      `Componi il piatto: metà ${veg.name.split('+')[0].trim()}, un quarto ${prot.vegan}, un quarto ${carb.name}. Aggiungi ${fat} a crudo.`,
+    ],
+    animalSteps: [
+      carb.cook,
+      veg.prep,
+      prot.animalPrep,
+      `Componi il piatto: metà ${veg.name.split('+')[0].trim()}, un quarto ${prot.animal}, un quarto ${carb.name}. Aggiungi ${fat} a crudo.`,
+    ],
+  };
+}
+
+// Build shopping list from generated week
+function buildShoppingList(weekMeals) {
+  const cats = {
+    '🌿 Proteine vegane': {},
+    '🥩 Swap proteina animale (per lui)': {},
+    '🌾 Carboidrati': {},
+    '🥬 Verdure (acquista settimanale)': {},
+    '🥛 Latticini vegetali': {},
+    '🧴 Dispensa settimanale': {},
+  };
+
+  const protVegan = {}, protAnimal = {}, carbs = {}, vegs = {};
+
+  weekMeals.forEach(day => {
+    [day.lunch, day.dinner].forEach(meal => {
+      // vegan protein
+      const pk = `${meal.prot.vegan} — ${meal.prot.qty}`;
+      protVegan[meal.prot.vegan] = (protVegan[meal.prot.vegan] || 0) + 1;
+      // animal protein
+      protAnimal[meal.prot.animal] = (protAnimal[meal.prot.animal] || 0) + 1;
+      // carb
+      carbs[meal.carb.name] = (carbs[meal.carb.name] || 0) + 1;
+      // veg
+      meal.veg.name.split('+').forEach(v => {
+        const vt = v.trim();
+        vegs[vt] = (vegs[vt] || 0) + 1;
+      });
+    });
+  });
+
+  return [
+    { cat:'🌿 Proteine vegane', items: Object.entries(protVegan).map(([n,c]) => ({n, q:`×${c} pasti`})) },
+    { cat:'🥩 Swap animale (per lui)', items: Object.entries(protAnimal).map(([n,c]) => ({n, q:`×${c} porzioni`})) },
+    { cat:'🌾 Carboidrati', items: Object.entries(carbs).map(([n,c]) => ({n, q:`×${c} volte`})) },
+    { cat:'🥬 Verdure', items: Object.entries(vegs).map(([n,c]) => ({n, q:`×${c} volte`})) },
+    { cat:'🥛 Latticini vegani (sempre a scorta)', items:[{n:'Yogurt di soia/cocco',q:'2 vasetti'},{n:'Latte di soia o avena',q:'1L'},{n:'Latte di mandorla',q:'500ml'},{n:'Kefir di soia',q:'1 bottiglia'}]},
+    { cat:'🧴 Dispensa (se non ce l\'hai)', items:[{n:'Hummus di ceci (Noa)',q:'1 vaschetta'},{n:'Burro di arachidi 100%',q:'1 barattolo'},{n:'Olio evo',q:'q.b.'},{n:'Granola proteica',q:'1 confezione'},{n:'Fiocchi d\'avena',q:'500g'},{n:'Noci + mandorle',q:'100g ciascuna'},{n:'Semi di chia + lino',q:'50g ciascuno'},{n:'Cioccolato fondente 85%',q:'1 tavoletta'},{n:'Tahina',q:'1 vasetto'}]},
+  ];
+}
+
+let currentWeekMeals = [];
+let currentShopping = [];
+
+function initNutri() {
+  currentWeekSeed = getWeekNum();
+  currentWeekMeals = generateWeekMeals(currentWeekSeed);
+  currentShopping = buildShoppingList(currentWeekMeals);
+}
+
+function renderNutri() {
+  if (!currentWeekMeals.length) initNutri();
+  const el = document.getElementById('nutriContent');
+  let html = '';
+
+  // BMR card
+  html += `<div class="bmr-card">
+    <div class="card-header" style="border:none;padding:0 0 8px;">
+      <div class="card-title">Il tuo fabbisogno — obiettivo massa</div>
+    </div>
+    <div class="bmr-row"><span>BMR (Harris-Benedict)</span><span class="bmr-val">1.355 kcal</span></div>
+    <div class="bmr-row"><span>TDEE (moderatamente attiva ×1.55)</span><span class="bmr-val">2.100 kcal</span></div>
+    <div class="bmr-row"><span>Target con surplus massa (+200 kcal)</span><span class="bmr-val">≈ 2.300 kcal</span></div>
+    <div class="bmr-row"><span>Proteine giornaliere (2g/kg)</span><span class="bmr-val">≈ 108g</span></div>
+    <div class="bmr-row"><span>Carboidrati</span><span class="bmr-val">≈ 288g</span></div>
+    <div class="bmr-row"><span>Grassi</span><span class="bmr-val">≈ 51g</span></div>
+    <div class="bmr-row"><span>Acqua minima</span><span class="bmr-val">1.925 ml</span></div>
+  </div>`;
+
+  html += `<div class="nutri-tip">🌱 Piano 100% vegano · ½ piatto verdure · ¼ proteine · ¼ carboidrati · olio evo a crudo. Ogni settimana il piano si rigenera automaticamente per variare gli ingredienti.</div>`;
+
+  // Week info + animal toggle
+  const weekNum = currentWeekSeed + 1;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+    <div style="font-size:13px;font-weight:500;color:var(--text);">Settimana ${weekNum} · ${new Date('2026-04-12').toLocaleDateString('it-IT',{day:'numeric',month:'short'})} + ${currentWeekSeed*7} giorni</div>
+    <div style="display:flex;align-items:center;gap:8px;background:var(--pink-light);padding:6px 12px;border-radius:20px;cursor:pointer;" onclick="toggleAnimal()">
+      <span style="font-size:12px;color:var(--pink-dark);font-weight:500;">🥩 Mostra swap per lui</span>
+      <label class="toggle" style="pointer-events:none;">
+        <input type="checkbox" id="animalToggle" ${showAnimal?'checked':''}>
+        <span class="toggle-slider" style="background:${showAnimal?'var(--pink)':'#D3D1C7'}"></span>
+      </label>
+    </div>
+  </div>`;
+
+  // Day nav
+  const today = new Date();
+  const startOfWeek = new Date('2026-04-12');
+  startOfWeek.setDate(startOfWeek.getDate() + currentWeekSeed * 7);
+  html += `<div class="nutri-day-nav">`;
+  WEEK_LABELS.forEach((lbl, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(d.getDate() + i);
+    html += `<button class="nday-btn${i===currentNDay?' active':''}" onclick="selectNDay(${i})">
+      <span class="nday-l">${lbl}</span>
+      <span class="nday-n">${d.getDate()}</span>
+    </button>`;
+  });
+  html += `</div>`;
+
+  const day = currentWeekMeals[currentNDay];
+
+  // BREAKFAST
+  html += renderMealCard('bfast', '☀️', 'Colazione', '07:00–08:00', day.breakfast, null, false);
+  // SNACK 1
+  html += `<div class="meal-card">
+    <div class="meal-header">
+      <span class="meal-icon">🍎</span>
+      <span class="meal-name">Spuntino mattina</span>
+      <span class="meal-time">10:30</span>
+    </div>
+    <div class="meal-body open" style="padding:10px 16px;">
+      <div style="font-size:13px;color:var(--text);">${day.snack1.name}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${day.snack1.ingr}</div>
+    </div>
+  </div>`;
+  // LUNCH
+  html += renderMealCard('lunch', '🍽️', 'Pranzo', '13:00', null, day.lunch, true);
+  // SNACK 2
+  html += `<div class="meal-card">
+    <div class="meal-header">
+      <span class="meal-icon">🌿</span>
+      <span class="meal-name">Spuntino pomeriggio</span>
+      <span class="meal-time">16:30</span>
+    </div>
+    <div class="meal-body open" style="padding:10px 16px;">
+      <div style="font-size:13px;color:var(--text);">${day.snack2.name}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${day.snack2.ingr}</div>
+    </div>
+  </div>`;
+  // DINNER
+  html += renderMealCard('dinner', '🌙', 'Cena', '20:00', null, day.dinner, true);
+
+  // Shopping list
+  html += `<div class="shop-card" style="margin-top:8px;">
+    <div class="shop-card-hdr">🛒 Lista della spesa — Settimana ${weekNum}</div>`;
+  currentShopping.forEach(cat => {
+    html += `<div class="shop-cat"><div class="shop-cat-name">${cat.cat}</div>`;
+    cat.items.forEach(item => {
+      html += `<div class="shop-item"><span>${item.n}</span><span class="shop-item-qty">${item.q}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  el.innerHTML = html;
+  // sync toggle checkbox
+  const tog = document.getElementById('animalToggle');
+  if (tog) tog.checked = showAnimal;
+}
+
+function renderMealCard(id, icon, name, time, bfast, meal, isMainMeal) {
+  const bodyId = `mbody_${id}_${currentNDay}`;
+  const arrowId = `marrow_${id}_${currentNDay}`;
+
+  let html = `<div class="meal-card">
+    <div class="meal-header" onclick="toggleMeal('${bodyId}','${arrowId}')">
+      <span class="meal-icon">${icon}</span>
+      <span class="meal-name">${name}</span>
+      <span class="meal-time">${time}</span>
+      <span class="meal-arrow" id="${arrowId}">▼</span>
+    </div>
+    <div class="meal-body" id="${bodyId}">`;
+
+  if (bfast) {
+    // Breakfast card
+    html += `<div class="ingr-title">Ingredienti (1 persona)</div><div class="ingr-list">`;
+    bfast.ingredients.forEach(i => {
+      html += `<div class="ingr-row"><span class="ingr-name">${i.n}</span><span class="ingr-qty">${i.q}</span></div>`;
+    });
+    html += `</div><div class="steps-title">Procedimento</div>`;
+    bfast.steps.forEach((s,si) => {
+      html += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`;
+    });
+    html += `<div class="macro-chips">`;
+    bfast.macros.forEach(mc => {
+      const cls = mc.startsWith('P')?'chip-p':mc.startsWith('C')?'chip-c':mc.startsWith('G')?'chip-g':'chip-m';
+      html += `<span class="macro-chip ${cls}">${mc}</span>`;
+    });
+    html += `</div>`;
+  }
+
+  if (isMainMeal && meal) {
+    // Vegan version
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+      <span style="font-size:11px;font-weight:500;background:#E1F5EE;color:#085041;padding:3px 8px;border-radius:10px;">🌱 Versione vegana</span>
+    </div>`;
+    html += `<div class="ingr-title">Ingredienti</div><div class="ingr-list">
+      <div class="ingr-row"><span class="ingr-name">${meal.prot.vegan}</span><span class="ingr-qty">${meal.prot.qty}</span></div>
+      <div class="ingr-row"><span class="ingr-name">${meal.carb.name}</span><span class="ingr-qty">${meal.carb.qty}</span></div>
+      <div class="ingr-row"><span class="ingr-name">${meal.veg.name}</span><span class="ingr-qty">200g</span></div>
+      <div class="ingr-row"><span class="ingr-name">${meal.fat}</span><span class="ingr-qty">—</span></div>
+    </div>`;
+    html += `<div class="steps-title">Procedimento</div>`;
+    meal.steps.forEach((s,si) => {
+      html += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`;
+    });
+    html += `<div class="macro-chips">
+      <span class="macro-chip chip-p">P: ${meal.prot.vegan}</span>
+      <span class="macro-chip chip-c">C: ${meal.carb.name}</span>
+      <span class="macro-chip chip-g">G: ${meal.fat}</span>
+      <span class="macro-chip chip-m">M: ${meal.veg.name}</span>
+    </div>`;
+
+    // Animal swap (conditionally shown)
+    if (showAnimal) {
+      html += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:500;background:var(--pink-light);color:var(--pink-dark);padding:3px 8px;border-radius:10px;">🥩 Swap per lui — stessa ricetta, cambia solo la proteina</span>
+        </div>
+        <div class="ingr-list">
+          <div class="ingr-row"><span class="ingr-name">${meal.prot.animal} (sostituisce ${meal.prot.vegan})</span><span class="ingr-qty">${meal.prot.animalQty}</span></div>
+        </div>
+        <div class="steps-title">Come cucinare la sua versione</div>
+        <div class="step-row"><span class="step-num">1</span><span>${meal.prot.animalPrep}</span></div>
+        <div class="step-row"><span class="step-num">2</span><span>Tutto il resto del piatto è identico — stesse verdure, stesso carboidrato, stesso condimento.</span></div>
+      </div>`;
+    }
+  }
+
+  html += `</div></div>`;
+  return html;
+}
+
+function toggleAnimal() {
+  showAnimal = !showAnimal;
+  renderNutri();
+}
+
+function selectNDay(i) {
+  currentNDay = i;
+  renderNutri();
+}
+
+function toggleMeal(bodyId, arrowId) {
+  const body = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.classList.toggle('open');
+}
+
+function render() {
+  renderNav();
+  renderMain();
+}
+
+render();
+</script>
+</body>
+</html>
