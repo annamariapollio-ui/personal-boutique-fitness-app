@@ -920,7 +920,7 @@ function updateWaterLabel() {
 }
 
 
-// ==================== TAB SWITCHING ====================
+// ===== TAB SWITCHING =====
 let currentTab = 'allenamento';
 function switchTab(tab) {
   currentTab = tab;
@@ -932,13 +932,15 @@ function switchTab(tab) {
   if (tab==='nutrizione') renderNutri();
 }
 
-
-// ==================== NUTRITION DATA (VEGAN + ANIMAL SWAP) ====================
+// ===== NUTRITION =====
 let currentNDay = 0;
 let showAnimal = false;
 let currentWeekSeed = 0;
+let currentWeekMeals = [];
+let currentShopping = [];
 
-// Calculate current week number from Apr 12 2026
+const WEEK_LABELS = ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'];
+
 function getWeekNum() {
   const start = new Date('2026-04-12');
   const now = new Date();
@@ -946,7 +948,6 @@ function getWeekNum() {
   return Math.max(0, diff);
 }
 
-// Seeded random for consistent weekly plan
 function seededRand(seed, i) {
   const x = Math.sin(seed * 9301 + i * 49297 + 233720) * 1000000;
   return x - Math.floor(x);
@@ -956,171 +957,114 @@ function pickRand(arr, seed, i) {
   return arr[Math.floor(seededRand(seed, i) * arr.length)];
 }
 
-const WEEK_LABELS = ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'];
-
-// Protein pools (vegan) — each with matching animal swap
 const PROTEIN_POOL = [
-  { vegan:'Tofu compatto', qty:'160g', prep:'Pressa il tofu 10 min, taglia a cubetti, marina con tamari e aglio, cuoci in padella 8 min.', animal:'Petto di pollo', animalQty:'150g', animalPrep:'Cuoci in padella con olio e aglio, 6–7 min per lato.' },
-  { vegan:'Tempeh', qty:'150g', prep:'Taglia a fette, rosola in padella con olio e salsa di soia per 4 min per lato.', animal:'Salmone', animalQty:'150g', animalPrep:'Cuoci in padella con olio e limone, 3–4 min per lato.' },
-  { vegan:'Ceci cotti', qty:'200g', prep:'Scola e sciacqua. Salta in padella con olio, curcuma e pepe.', animal:'Merluzzo', animalQty:'150g', animalPrep:'Cuoci al vapore o in padella con olio e erbe, 5–6 min.' },
-  { vegan:'Lenticchie cotte', qty:'200g', prep:'Cuoci in brodo con alloro 20 min (o usa quelle in scatola).', animal:'Orata', animalQty:'150g', animalPrep:'Al forno 180°C con olio, limone e capperi, 20 min.' },
-  { vegan:'Edamame (soia)', qty:'180g', prep:'Sbollenta 3 min in acqua salata. Scola e usa sgranati.', animal:'Gamberi', animalQty:'150g', animalPrep:'Salta in padella con aglio e olio, 3 min.' },
-  { vegan:'Fagioli neri', qty:'200g', prep:'Scola, sciacqua, cuoci 5 min in padella con aglio e paprika.', animal:'Tacchino (fesa)', animalQty:'150g', animalPrep:'Cuoci a fette in padella, 3 min per lato.' },
-  { vegan:'Feta di soia', qty:'120g', prep:'Taglia a cubetti, usa a crudo o cuoci leggermente in padella.', animal:'Uova', animalQty:'3 uova', animalPrep:'Strapazza in padella con olio per 3–4 min.' },
-  { vegan:'Seitan', qty:'130g', prep:'Taglia a strisce, cuoci in padella con olio e erbe aromatiche, 5 min.', animal:'Tonno al naturale', animalQty:'120g', animalPrep:'Apri la scatoletta e usa direttamente.' },
+  { vegan:'Tofu compatto', qty:'160g', prep:'Pressa 10 min, taglia a cubetti, marina con tamari e aglio, cuoci in padella 8 min.', animal:'Petto di pollo', animalQty:'150g', animalPrep:'Cuoci in padella con olio e aglio, 6–7 min per lato.' },
+  { vegan:'Tempeh', qty:'150g', prep:'Taglia a fette, rosola in padella con olio e salsa di soia, 4 min per lato.', animal:'Salmone', animalQty:'150g', animalPrep:'Cuoci in padella con olio e limone, 3–4 min per lato.' },
+  { vegan:'Ceci cotti', qty:'200g', prep:'Scola e sciacqua. Salta in padella con olio, curcuma e pepe.', animal:'Merluzzo', animalQty:'150g', animalPrep:'Cuoci al vapore o in padella con erbe, 5–6 min.' },
+  { vegan:'Lenticchie cotte', qty:'200g', prep:'Cuoci in brodo con alloro 20 min (o usa quelle in scatola).', animal:'Orata', animalQty:'150g', animalPrep:'Al forno 180°C con olio e limone, 20 min.' },
+  { vegan:'Edamame', qty:'180g', prep:'Sbollenta 3 min in acqua salata. Scola e sgrana.', animal:'Gamberi', animalQty:'150g', animalPrep:'Salta in padella con aglio e olio, 3 min.' },
+  { vegan:'Fagioli neri', qty:'200g', prep:'Scola, sciacqua, cuoci 5 min in padella con aglio e paprika.', animal:'Fesa di tacchino', animalQty:'150g', animalPrep:'Cuoci a fette in padella, 3 min per lato.' },
+  { vegan:'Seitan', qty:'130g', prep:'Taglia a strisce, cuoci in padella con olio e erbe, 5 min.', animal:'Tonno al naturale', animalQty:'120g', animalPrep:'Apri la scatoletta e usa direttamente.' },
+  { vegan:'Tofu morbido strapazzato', qty:'150g', prep:'Sbriciola in padella con curcuma, sale nero e olio, 5 min.', animal:'Uova strapazzate', animalQty:'3 uova', animalPrep:'Strapazza in padella con olio, 3–4 min.' },
 ];
 
-// Carb pool
 const CARB_POOL = [
   { name:'Riso basmati', qty:'75g secco', cook:'Cuoci in acqua salata 10–12 min.' },
   { name:'Pasta integrale', qty:'80g secca', cook:'Cuoci al dente secondo le istruzioni.' },
   { name:'Farro', qty:'75g secco', cook:'Cuoci in acqua salata 20–25 min.' },
-  { name:'Quinoa', qty:'70g secca', cook:'Cuoci 15 min (rapporto 1:2 con acqua).' },
+  { name:'Quinoa', qty:'70g secca', cook:'Cuoci 15 min (rapporto 1:2 acqua).' },
   { name:'Riso nero', qty:'70g secco', cook:'Cuoci 30–35 min in acqua salata.' },
-  { name:'Patate dolci', qty:'200g', cook:'Al forno a 200°C per 25 min o al vapore.' },
-  { name:'Gnocchi di patate integrali', qty:'150g', cook:'Lessali 2–3 min in acqua salata.' },
+  { name:'Patate dolci', qty:'200g', cook:'Al forno 200°C per 25 min o al vapore.' },
   { name:'Orzo perlato', qty:'70g secco', cook:'Cuoci 20 min in acqua salata.' },
-  { name:'Couscous integrale', qty:'70g secco', cook:'Versa acqua bollente (stessa quantità), copri 5 min.' },
+  { name:'Couscous integrale', qty:'70g secco', cook:'Versa acqua bollente, copri 5 min.' },
   { name:'Patate comuni', qty:'200g', cook:'Lessa 20 min o cuoci al forno.' },
+  { name:'Gnocchi integrali', qty:'150g', cook:'Lessali 2–3 min in acqua salata.' },
 ];
 
-// Veggie pool (seasonal Apr–May)
 const VEG_POOL = [
-  { name:'Asparagi + pomodorini', prep:'Sbollenta asparagi 5 min, aggiungi pomodorini crudi.' },
-  { name:'Zucchine + spinaci', prep:'Salta in padella con aglio e olio per 5 min.' },
+  { name:'Asparagi + pomodorini', prep:'Sbollenta asparagi 5 min, pomodorini crudi.' },
+  { name:'Zucchine + spinaci', prep:'Salta in padella con aglio e olio 5 min.' },
   { name:'Broccoli + carote', prep:'A vapore 8 min o saltati in padella.' },
-  { name:'Finocchi + radicchio', prep:'Griglia i finocchi a fette, radicchio crudo a lato.' },
+  { name:'Finocchi + radicchio', prep:'Griglia finocchi a fette, radicchio crudo a lato.' },
   { name:'Peperoni + cipolla', prep:'Arrostiti in padella con olio e origano, 10 min.' },
-  { name:'Cavolo cappuccio + carote', prep:'Crudi e grattugiati con succo di limone e olio.' },
-  { name:'Melanzane + pomodori', prep:'Grigliate le melanzane, aggiungi pomodori a cubetti.' },
-  { name:'Carciofi + piselli', prep:'Carciofi saltati con piselli in padella, 8 min.' },
-  { name:'Barbabietola + rucola', prep:'Barbabietola cotta a fette, rucola cruda.' },
+  { name:'Melanzane + pomodori', prep:'Grigliate le melanzane, pomodori a cubetti.' },
+  { name:'Carciofi + piselli', prep:'Saltati in padella con olio, 8 min.' },
   { name:'Zucca + spinaci', prep:'Zucca al forno 20 min, spinaci saltati 3 min.' },
+  { name:'Cavolo + carote', prep:'Grattugiati crudi con limone e olio.' },
+  { name:'Fagiolini + pomodorini', prep:'Fagiolini sbollentati 6 min, pomodorini crudi.' },
 ];
 
-// Fat sources
 const FAT_POOL = [
-  '1 cucchiaio olio evo', '½ avocado', '15g noci', '15g mandorle', '1 cucchiaio tahina', '15g semi misti (chia+lino)', '10g olio evo + 5g pinoli',
+  '1 cucchiaio olio evo','½ avocado (60g)','15g noci','15g mandorle','1 cucchiaio tahina','10g semi misti chia+lino','10g olio evo + 5g pinoli',
 ];
 
-// Breakfast pool (all vegan)
 const BREAKFAST_POOL = [
-  { name:'Overnight oats proteici', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di soia',q:'150ml'},{n:'Proteine in polvere vegan (facoltativo)',q:'20g'},{n:'Frutti di bosco',q:'80g'},{n:'Semi di chia',q:'10g'},{n:'Miele d\'agave',q:'1 cucchiaino'}], steps:['Mescola avena, latte di soia e semi di chia la sera prima.','La mattina aggiungi i frutti di bosco e l\'agave.','Riposo in frigo overnight — pronto subito.'], macros:['C: avena','P: latte soia + semi','G: semi chia','M: frutti di bosco'] },
-  { name:'Toast avocado e tofu strapazzato', ingredients:[{n:'Pane integrale',q:'2 fette (70g)'},{n:'Avocado',q:'½'},{n:'Tofu morbido',q:'100g'},{n:'Curcuma, sale nero (kala namak)',q:'q.b.'},{n:'Pomodorini',q:'80g'}], steps:['Sbriciola il tofu in padella con olio, curcuma e sale nero (dà sapore di uovo) per 4–5 min.','Tosta il pane.','Schiaccia l\'avocado sul pane, aggiungi il tofu strapazzato e pomodorini.'], macros:['P: tofu','C: pane integrale','G: avocado','M: curcuma (anti-infiammatoria)'] },
-  { name:'Yogurt di soia con granola e frutta', ingredients:[{n:'Yogurt di cocco o soia',q:'150g'},{n:'Granola proteica',q:'40g'},{n:'Banana',q:'½'},{n:'Mirtilli',q:'60g'},{n:'Burro di arachidi',q:'15g'}], steps:['Versa lo yogurt in una ciotola.','Aggiungi granola, banana a fette, mirtilli.','Aggiungi un cucchiaio di burro di arachidi in cima.'], macros:['P: yogurt soia + arachidi','C: granola + frutta','G: arachidi','M: mirtilli'] },
-  { name:'Smoothie bowl proteico', ingredients:[{n:'Banana congelata',q:'1'},{n:'Latte di mandorla',q:'100ml'},{n:'Spinaci',q:'30g'},{n:'Proteine vegan vaniglia',q:'25g'},{n:'Fiocchi d\'avena (topping)',q:'30g'},{n:'Semi di lino',q:'10g'},{n:'Frutti di bosco (topping)',q:'60g'}], steps:['Frulla banana, latte di mandorla, spinaci e proteine fino a crema densa.','Versa in una ciotola.','Decora con avena, semi di lino e frutti di bosco.'], macros:['P: proteine + spinaci','C: banana + avena','G: semi lino','M: spinaci'] },
-  { name:'Frisella con hummus e verdure', ingredients:[{n:'Frisella integrale',q:'2 (80g)'},{n:'Hummus di ceci',q:'60g'},{n:'Pomodorini',q:'100g'},{n:'Cetriolo',q:'½'},{n:'Olio evo',q:'1 cucchiaio'}], steps:['Ammolla leggermente le friselle in acqua fredda 30 secondi.','Spalma l\'hummus abbondante su entrambe.','Aggiungi pomodorini tagliati, cetriolo e un filo di olio.'], macros:['P: ceci','C: frisella','G: olio','M: verdure crude'] },
-  { name:'Porridge con mela cotta', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di avena',q:'180ml'},{n:'Mela',q:'1 media'},{n:'Cannella',q:'1 pizzico'},{n:'Noci tritate',q:'15g'},{n:'Miele d\'agave',q:'1 cucchiaino'}], steps:['Cuoci la mela a cubetti in padella con cannella e un goccio d\'acqua per 5 min.','Scaldi l\'avena con il latte di avena 3–4 min mescolando.','Servi il porridge con la mela cotta sopra, noci e agave.'], macros:['C: avena + mela','G: noci','M: cannella (stabilizza glicemia)'] },
-  { name:'Pancakes vegan proteici', ingredients:[{n:'Fiocchi d\'avena macinati',q:'60g'},{n:'Banana',q:'1'},{n:'Latte di soia',q:'80ml'},{n:'Lievito per dolci',q:'½ cucchiaino'},{n:'Frutti di bosco',q:'60g'},{n:'Sciroppo d\'acero (facoltativo)',q:'1 cucchiaino'}], steps:['Frulla avena, banana e latte di soia fino a pastella.','Aggiungi il lievito e mescola.','Cuoci in padella antiaderente senza olio, 2–3 min per lato.','Servi con frutti di bosco.'], macros:['C: avena + banana','P: latte soia','G: —','M: frutti di bosco'] },
+  { name:'Overnight oats proteici', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di soia',q:'150ml'},{n:'Frutti di bosco',q:'80g'},{n:'Semi di chia',q:'10g'},{n:'Sciroppo d\'agave',q:'1 cucchiaino'}], steps:['Mescola avena, latte di soia e semi di chia la sera prima in un barattolo.','La mattina aggiungi i frutti di bosco e l\'agave.','Pronto subito — no cottura.'], macros:['C: avena','P: latte soia','G: semi chia','M: frutti di bosco'] },
+  { name:'Toast avocado e tofu strapazzato', ingredients:[{n:'Pane integrale',q:'2 fette (70g)'},{n:'Avocado',q:'½'},{n:'Tofu morbido',q:'100g'},{n:'Curcuma + sale nero (kala namak)',q:'q.b.'},{n:'Pomodorini',q:'80g'}], steps:['Sbriciola il tofu in padella con olio, curcuma e sale nero per 4–5 min.','Tosta il pane.','Schiaccia l\'avocado sul pane, aggiungi il tofu e i pomodorini.'], macros:['P: tofu','C: pane integrale','G: avocado','M: curcuma'] },
+  { name:'Yogurt di soia con granola e frutta', ingredients:[{n:'Yogurt di soia o cocco',q:'150g'},{n:'Granola proteica',q:'40g'},{n:'Banana',q:'½'},{n:'Mirtilli',q:'60g'},{n:'Burro di arachidi',q:'15g'}], steps:['Versa lo yogurt in una ciotola.','Aggiungi granola, banana a fette e mirtilli.','Aggiungi il burro di arachidi in cima.'], macros:['P: yogurt soia','C: granola + frutta','G: arachidi','M: mirtilli'] },
+  { name:'Smoothie bowl proteico', ingredients:[{n:'Banana congelata',q:'1'},{n:'Latte di mandorla',q:'100ml'},{n:'Spinaci',q:'30g'},{n:'Fiocchi d\'avena (topping)',q:'30g'},{n:'Semi di lino',q:'10g'},{n:'Frutti di bosco (topping)',q:'60g'}], steps:['Frulla banana, latte e spinaci fino a crema densa.','Versa in una ciotola.','Decora con avena, semi e frutti di bosco.'], macros:['C: banana + avena','G: semi lino','M: spinaci'] },
+  { name:'Porridge con mela cotta e noci', ingredients:[{n:'Fiocchi d\'avena',q:'60g'},{n:'Latte di avena',q:'180ml'},{n:'Mela',q:'1 media'},{n:'Cannella',q:'1 pizzico'},{n:'Noci tritate',q:'15g'},{n:'Agave o miele',q:'1 cucchiaino'}], steps:['Cuoci la mela a cubetti con cannella e un goccio d\'acqua, 5 min.','Scalda l\'avena con il latte mescolando, 3–4 min.','Servi il porridge con la mela cotta, noci e agave.'], macros:['C: avena + mela','G: noci','M: cannella'] },
+  { name:'Frisella con hummus e verdure', ingredients:[{n:'Frisella integrale',q:'2 (80g)'},{n:'Hummus di ceci',q:'60g'},{n:'Pomodorini',q:'100g'},{n:'Cetriolo',q:'½'},{n:'Olio evo',q:'1 cucchiaio'}], steps:['Ammolla le friselle in acqua fredda 30 sec.','Spalma l\'hummus abbondante su entrambe.','Aggiungi pomodorini, cetriolo e olio a filo.'], macros:['P: ceci','C: frisella','G: olio','M: verdure crude'] },
+  { name:'Pancakes vegan proteici', ingredients:[{n:'Fiocchi d\'avena macinati',q:'60g'},{n:'Banana',q:'1'},{n:'Latte di soia',q:'80ml'},{n:'Lievito per dolci',q:'½ cucchiaino'},{n:'Frutti di bosco',q:'60g'}], steps:['Frulla avena, banana e latte fino a pastella.','Aggiungi il lievito e mescola.','Cuoci in padella antiaderente, 2–3 min per lato.','Servi con frutti di bosco.'], macros:['C: avena + banana','P: latte soia','M: frutti di bosco'] },
 ];
 
-// Snack pool (vegan)
 const SNACK_POOL = [
-  { name:'Mela + mandorle', ingr:'1 mela + 15g mandorle' },
-  { name:'Carote + hummus', ingr:'2 carote + 40g hummus' },
-  { name:'Yogurt soia + frutta', ingr:'100g yogurt soia + frutto di stagione' },
-  { name:'Gallette + burro arachidi', ingr:'2 gallette + 20g burro di arachidi 100%' },
-  { name:'Frullato mirtilli', ingr:'150ml latte mandorla + 80g mirtilli + 15g proteine vegan' },
-  { name:'Cioccolato fondente + noci', ingr:'20g cioccolato 85% + 15g noci' },
-  { name:'Edamame salati', ingr:'100g edamame sbollentati con sale' },
+  { name:'Mela + mandorle', ingr:'1 mela media + 15g mandorle' },
+  { name:'Carote + hummus', ingr:'2 carote + 40g hummus di ceci' },
+  { name:'Yogurt soia + frutta di stagione', ingr:'100g yogurt soia + 1 frutto' },
+  { name:'Gallette + burro arachidi 100%', ingr:'2 gallette + 20g burro arachidi' },
+  { name:'Edamame salati', ingr:'100g edamame sbollentati + sale' },
+  { name:'Cioccolato fondente 85% + noci', ingr:'20g cioccolato + 15g noci' },
+  { name:'Kefir di soia + semi di chia', ingr:'150ml kefir soia + 1 cucchiaino chia' },
+  { name:'Wasa + avocado schiacciato', ingr:'2 Wasa integrali + ½ avocado + sale' },
+  { name:'Frullato mirtilli e mandorla', ingr:'150ml latte mandorla + 80g mirtilli frullati' },
   { name:'Datteri + tahina', ingr:'3 datteri Medjool + 1 cucchiaino tahina' },
-  { name:'Kefir di soia + chia', ingr:'150ml kefir di soia + 1 cucchiaino semi di chia' },
-  { name:'Wasa + avocado', ingr:'2 cracker Wasa + ½ avocado schiacciato' },
 ];
 
-// Generate a full week of meals based on seed
-function generateWeekMeals(seed) {
-  const days = [];
-  for (let d = 0; d < 7; d++) {
-    const prot = pickRand(PROTEIN_POOL, seed, d);
-    const carb = pickRand(CARB_POOL, seed, d + 10);
-    const veg = pickRand(VEG_POOL, seed, d + 20);
-    const fat = pickRand(FAT_POOL, seed, d + 30);
-    const bfast = pickRand(BREAKFAST_POOL, seed, d + 40);
-    const snack1 = pickRand(SNACK_POOL, seed, d + 50);
-    const snack2 = pickRand(SNACK_POOL, seed, d + 60);
-
-    days.push({
-      breakfast: bfast,
-      snack1: snack1,
-      lunch: buildMeal(prot, carb, veg, fat, 'Pranzo', d, seed),
-      snack2: snack2,
-      dinner: buildMeal(
-        pickRand(PROTEIN_POOL, seed, d + 70),
-        pickRand(CARB_POOL, seed, d + 80),
-        pickRand(VEG_POOL, seed, d + 90),
-        pickRand(FAT_POOL, seed, d + 100),
-        'Cena', d, seed
-      ),
-    });
-  }
-  return days;
-}
-
-function buildMeal(prot, carb, veg, fat, mealName, d, seed) {
-  const isLunch = mealName === 'Pranzo';
+function buildMeal(prot, carb, veg, fat, mealName) {
   return {
     name: mealName,
-    icon: isLunch ? '🍽️' : '🌙',
-    time: isLunch ? '13:00' : '20:00',
+    icon: mealName === 'Pranzo' ? '🍽️' : '🌙',
+    time: mealName === 'Pranzo' ? '13:00' : '20:00',
     prot, carb, veg, fat,
     steps: [
       carb.cook,
       veg.prep,
       prot.prep,
-      `Componi il piatto: metà ${veg.name.split('+')[0].trim()}, un quarto ${prot.vegan}, un quarto ${carb.name}. Aggiungi ${fat} a crudo.`,
-    ],
-    animalSteps: [
-      carb.cook,
-      veg.prep,
-      prot.animalPrep,
-      `Componi il piatto: metà ${veg.name.split('+')[0].trim()}, un quarto ${prot.animal}, un quarto ${carb.name}. Aggiungi ${fat} a crudo.`,
+      `Componi: metà piatto ${veg.name}, un quarto ${prot.vegan} (${prot.qty}), un quarto ${carb.name}. Condisci con ${fat} a crudo.`,
     ],
   };
 }
 
-// Build shopping list from generated week
-function buildShoppingList(weekMeals) {
-  const cats = {
-    '🌿 Proteine vegane': {},
-    '🥩 Swap proteina animale (per lui)': {},
-    '🌾 Carboidrati': {},
-    '🥬 Verdure (acquista settimanale)': {},
-    '🥛 Latticini vegetali': {},
-    '🧴 Dispensa settimanale': {},
-  };
+function generateWeekMeals(seed) {
+  return Array.from({length:7}, (_, d) => ({
+    breakfast: pickRand(BREAKFAST_POOL, seed, d + 40),
+    snack1: pickRand(SNACK_POOL, seed, d + 50),
+    lunch: buildMeal(pickRand(PROTEIN_POOL,seed,d), pickRand(CARB_POOL,seed,d+10), pickRand(VEG_POOL,seed,d+20), pickRand(FAT_POOL,seed,d+30), 'Pranzo'),
+    snack2: pickRand(SNACK_POOL, seed, d + 60),
+    dinner: buildMeal(pickRand(PROTEIN_POOL,seed,d+70), pickRand(CARB_POOL,seed,d+80), pickRand(VEG_POOL,seed,d+90), pickRand(FAT_POOL,seed,d+100), 'Cena'),
+  }));
+}
 
-  const protVegan = {}, protAnimal = {}, carbs = {}, vegs = {};
-
-  weekMeals.forEach(day => {
-    [day.lunch, day.dinner].forEach(meal => {
-      // vegan protein
-      const pk = `${meal.prot.vegan} — ${meal.prot.qty}`;
-      protVegan[meal.prot.vegan] = (protVegan[meal.prot.vegan] || 0) + 1;
-      // animal protein
-      protAnimal[meal.prot.animal] = (protAnimal[meal.prot.animal] || 0) + 1;
-      // carb
-      carbs[meal.carb.name] = (carbs[meal.carb.name] || 0) + 1;
-      // veg
-      meal.veg.name.split('+').forEach(v => {
-        const vt = v.trim();
-        vegs[vt] = (vegs[vt] || 0) + 1;
-      });
+function buildShoppingList(meals) {
+  const pV={}, pA={}, carbs={}, vegs={};
+  meals.forEach(day => {
+    [day.lunch, day.dinner].forEach(m => {
+      pV[m.prot.vegan] = (pV[m.prot.vegan]||0)+1;
+      pA[m.prot.animal] = (pA[m.prot.animal]||0)+1;
+      carbs[m.carb.name] = (carbs[m.carb.name]||0)+1;
+      m.veg.name.split('+').forEach(v => { const t=v.trim(); vegs[t]=(vegs[t]||0)+1; });
     });
   });
-
   return [
-    { cat:'🌿 Proteine vegane', items: Object.entries(protVegan).map(([n,c]) => ({n, q:`×${c} pasti`})) },
-    { cat:'🥩 Swap animale (per lui)', items: Object.entries(protAnimal).map(([n,c]) => ({n, q:`×${c} porzioni`})) },
-    { cat:'🌾 Carboidrati', items: Object.entries(carbs).map(([n,c]) => ({n, q:`×${c} volte`})) },
-    { cat:'🥬 Verdure', items: Object.entries(vegs).map(([n,c]) => ({n, q:`×${c} volte`})) },
-    { cat:'🥛 Latticini vegani (sempre a scorta)', items:[{n:'Yogurt di soia/cocco',q:'2 vasetti'},{n:'Latte di soia o avena',q:'1L'},{n:'Latte di mandorla',q:'500ml'},{n:'Kefir di soia',q:'1 bottiglia'}]},
-    { cat:'🧴 Dispensa (se non ce l\'hai)', items:[{n:'Hummus di ceci (Noa)',q:'1 vaschetta'},{n:'Burro di arachidi 100%',q:'1 barattolo'},{n:'Olio evo',q:'q.b.'},{n:'Granola proteica',q:'1 confezione'},{n:'Fiocchi d\'avena',q:'500g'},{n:'Noci + mandorle',q:'100g ciascuna'},{n:'Semi di chia + lino',q:'50g ciascuno'},{n:'Cioccolato fondente 85%',q:'1 tavoletta'},{n:'Tahina',q:'1 vasetto'}]},
+    { cat:'🌿 Proteine vegane', items: Object.entries(pV).map(([n,c])=>({n, q:`×${c} pasti`})) },
+    { cat:'🥩 Swap proteina animale (per lui)', items: Object.entries(pA).map(([n,c])=>({n, q:`×${c} porzioni`})) },
+    { cat:'🌾 Carboidrati', items: Object.entries(carbs).map(([n,c])=>({n, q:`×${c} volte`})) },
+    { cat:'🥬 Verdure', items: Object.entries(vegs).map(([n,c])=>({n, q:`×${c} volte`})) },
+    { cat:'🥛 Latticini vegani (scorta)', items:[{n:'Yogurt di soia/cocco',q:'2 vasetti'},{n:'Latte di soia o avena',q:'1L'},{n:'Latte di mandorla',q:'500ml'},{n:'Kefir di soia',q:'1 bottiglia'}]},
+    { cat:'🧴 Dispensa (se non hai)', items:[{n:'Hummus di ceci (Noa)',q:'1 vaschetta'},{n:'Burro di arachidi 100%',q:'1 barattolo'},{n:'Olio evo',q:'q.b.'},{n:'Granola proteica',q:'1 conf.'},{n:'Fiocchi d\'avena',q:'500g'},{n:'Noci + mandorle',q:'100g cad.'},{n:'Semi di chia + lino',q:'50g cad.'},{n:'Cioccolato fondente 85%',q:'1 tavoletta'},{n:'Tahina',q:'1 vasetto'}]},
   ];
 }
-
-let currentWeekMeals = [];
-let currentShopping = [];
 
 function initNutri() {
   currentWeekSeed = getWeekNum();
@@ -1133,86 +1077,58 @@ function renderNutri() {
   const el = document.getElementById('nutriContent');
   let html = '';
 
-  // BMR card
   html += `<div class="bmr-card">
-    <div class="card-header" style="border:none;padding:0 0 8px;">
-      <div class="card-title">Il tuo fabbisogno — obiettivo massa</div>
-    </div>
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Il tuo fabbisogno — obiettivo massa</div>
     <div class="bmr-row"><span>BMR (Harris-Benedict)</span><span class="bmr-val">1.355 kcal</span></div>
-    <div class="bmr-row"><span>TDEE (moderatamente attiva ×1.55)</span><span class="bmr-val">2.100 kcal</span></div>
-    <div class="bmr-row"><span>Target con surplus massa (+200 kcal)</span><span class="bmr-val">≈ 2.300 kcal</span></div>
-    <div class="bmr-row"><span>Proteine giornaliere (2g/kg)</span><span class="bmr-val">≈ 108g</span></div>
-    <div class="bmr-row"><span>Carboidrati</span><span class="bmr-val">≈ 288g</span></div>
-    <div class="bmr-row"><span>Grassi</span><span class="bmr-val">≈ 51g</span></div>
+    <div class="bmr-row"><span>TDEE moderatamente attiva (×1.55)</span><span class="bmr-val">2.100 kcal</span></div>
+    <div class="bmr-row"><span>Target massa (+200 kcal surplus)</span><span class="bmr-val">≈ 2.300 kcal</span></div>
+    <div class="bmr-row"><span>Proteine (2g/kg)</span><span class="bmr-val">≈ 108g/die</span></div>
+    <div class="bmr-row"><span>Carboidrati</span><span class="bmr-val">≈ 288g/die</span></div>
+    <div class="bmr-row"><span>Grassi</span><span class="bmr-val">≈ 51g/die</span></div>
     <div class="bmr-row"><span>Acqua minima</span><span class="bmr-val">1.925 ml</span></div>
   </div>`;
 
-  html += `<div class="nutri-tip">🌱 Piano 100% vegano · ½ piatto verdure · ¼ proteine · ¼ carboidrati · olio evo a crudo. Ogni settimana il piano si rigenera automaticamente per variare gli ingredienti.</div>`;
+  html += `<div class="nutri-tip">🌱 Piano 100% vegano · ½ verdure · ¼ proteine · ¼ carboidrati · olio evo a crudo. Il piano cambia ogni settimana automaticamente.</div>`;
 
-  // Week info + animal toggle
-  const weekNum = currentWeekSeed + 1;
+  const wn = currentWeekSeed + 1;
+  const wStart = new Date('2026-04-12');
+  wStart.setDate(wStart.getDate() + currentWeekSeed * 7);
+
   html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-    <div style="font-size:13px;font-weight:500;color:var(--text);">Settimana ${weekNum} · ${new Date('2026-04-12').toLocaleDateString('it-IT',{day:'numeric',month:'short'})} + ${currentWeekSeed*7} giorni</div>
+    <div style="font-size:13px;font-weight:500;color:var(--text);">Settimana ${wn}</div>
     <div style="display:flex;align-items:center;gap:8px;background:var(--pink-light);padding:6px 12px;border-radius:20px;cursor:pointer;" onclick="toggleAnimal()">
-      <span style="font-size:12px;color:var(--pink-dark);font-weight:500;">🥩 Mostra swap per lui</span>
+      <span style="font-size:12px;color:var(--pink-dark);font-weight:500;">🥩 Swap per lui</span>
       <label class="toggle" style="pointer-events:none;">
-        <input type="checkbox" id="animalToggle" ${showAnimal?'checked':''}>
-        <span class="toggle-slider" style="background:${showAnimal?'var(--pink)':'#D3D1C7'}"></span>
+        <input type="checkbox" ${showAnimal?'checked':''} style="opacity:0;width:0;height:0;">
+        <span class="toggle-slider" style="background:${showAnimal?'var(--pink)':'#D3D1C7'};position:relative;display:inline-block;width:36px;height:20px;border-radius:20px;"></span>
       </label>
     </div>
   </div>`;
 
-  // Day nav
-  const today = new Date();
-  const startOfWeek = new Date('2026-04-12');
-  startOfWeek.setDate(startOfWeek.getDate() + currentWeekSeed * 7);
   html += `<div class="nutri-day-nav">`;
   WEEK_LABELS.forEach((lbl, i) => {
-    const d = new Date(startOfWeek);
-    d.setDate(d.getDate() + i);
+    const d = new Date(wStart); d.setDate(d.getDate() + i);
     html += `<button class="nday-btn${i===currentNDay?' active':''}" onclick="selectNDay(${i})">
-      <span class="nday-l">${lbl}</span>
-      <span class="nday-n">${d.getDate()}</span>
+      <span class="nday-l">${lbl}</span><span class="nday-n">${d.getDate()}</span>
     </button>`;
   });
   html += `</div>`;
 
   const day = currentWeekMeals[currentNDay];
 
-  // BREAKFAST
-  html += renderMealCard('bfast', '☀️', 'Colazione', '07:00–08:00', day.breakfast, null, false);
-  // SNACK 1
-  html += `<div class="meal-card">
-    <div class="meal-header">
-      <span class="meal-icon">🍎</span>
-      <span class="meal-name">Spuntino mattina</span>
-      <span class="meal-time">10:30</span>
-    </div>
-    <div class="meal-body open" style="padding:10px 16px;">
-      <div style="font-size:13px;color:var(--text);">${day.snack1.name}</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${day.snack1.ingr}</div>
-    </div>
-  </div>`;
-  // LUNCH
-  html += renderMealCard('lunch', '🍽️', 'Pranzo', '13:00', null, day.lunch, true);
-  // SNACK 2
-  html += `<div class="meal-card">
-    <div class="meal-header">
-      <span class="meal-icon">🌿</span>
-      <span class="meal-name">Spuntino pomeriggio</span>
-      <span class="meal-time">16:30</span>
-    </div>
-    <div class="meal-body open" style="padding:10px 16px;">
-      <div style="font-size:13px;color:var(--text);">${day.snack2.name}</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${day.snack2.ingr}</div>
-    </div>
-  </div>`;
-  // DINNER
-  html += renderMealCard('dinner', '🌙', 'Cena', '20:00', null, day.dinner, true);
+  // Breakfast
+  html += mealCardBfast(day.breakfast);
+  // Snack 1
+  html += snackCard('🍎', 'Spuntino mattina', '10:30', day.snack1);
+  // Lunch
+  html += mealCardMain('lunch', day.lunch);
+  // Snack 2
+  html += snackCard('🌿', 'Spuntino pomeriggio', '16:30', day.snack2);
+  // Dinner
+  html += mealCardMain('dinner', day.dinner);
 
   // Shopping list
-  html += `<div class="shop-card" style="margin-top:8px;">
-    <div class="shop-card-hdr">🛒 Lista della spesa — Settimana ${weekNum}</div>`;
+  html += `<div class="shop-card" style="margin-top:8px;"><div class="shop-card-hdr">🛒 Lista della spesa — Settimana ${wn}</div>`;
   currentShopping.forEach(cat => {
     html += `<div class="shop-cat"><div class="shop-cat-name">${cat.cat}</div>`;
     cat.items.forEach(item => {
@@ -1223,82 +1139,82 @@ function renderNutri() {
   html += `</div>`;
 
   el.innerHTML = html;
-  // sync toggle checkbox
-  const tog = document.getElementById('animalToggle');
-  if (tog) tog.checked = showAnimal;
 }
 
-function renderMealCard(id, icon, name, time, bfast, meal, isMainMeal) {
-  const bodyId = `mbody_${id}_${currentNDay}`;
-  const arrowId = `marrow_${id}_${currentNDay}`;
+function mealCardBfast(b) {
+  const id = `bf_${currentNDay}`;
+  let h = `<div class="meal-card">
+    <div class="meal-header" onclick="toggleMeal('${id}')">
+      <span class="meal-icon">☀️</span>
+      <span class="meal-name">Colazione — ${b.name}</span>
+      <span class="meal-time">07:30</span>
+      <span class="meal-arrow" id="arr_${id}">▼</span>
+    </div>
+    <div class="meal-body" id="${id}">
+      <div class="ingr-title">Ingredienti (1 persona)</div>`;
+  b.ingredients.forEach(i => { h += `<div class="ingr-row"><span>${i.n}</span><span class="ingr-qty">${i.q}</span></div>`; });
+  h += `<div class="steps-title">Procedimento</div>`;
+  b.steps.forEach((s,si) => { h += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`; });
+  h += `<div class="macro-chips">`;
+  b.macros.forEach(m => {
+    const cl = m.startsWith('P')?'chip-p':m.startsWith('C')?'chip-c':m.startsWith('G')?'chip-g':'chip-m';
+    h += `<span class="macro-chip ${cl}">${m}</span>`;
+  });
+  h += `</div></div></div>`;
+  return h;
+}
 
-  let html = `<div class="meal-card">
-    <div class="meal-header" onclick="toggleMeal('${bodyId}','${arrowId}')">
+function snackCard(icon, name, time, s) {
+  return `<div class="meal-card">
+    <div class="meal-header">
       <span class="meal-icon">${icon}</span>
       <span class="meal-name">${name}</span>
       <span class="meal-time">${time}</span>
-      <span class="meal-arrow" id="${arrowId}">▼</span>
     </div>
-    <div class="meal-body" id="${bodyId}">`;
+    <div class="meal-body open" style="padding:10px 16px;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">${s.name}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${s.ingr}</div>
+    </div>
+  </div>`;
+}
 
-  if (bfast) {
-    // Breakfast card
-    html += `<div class="ingr-title">Ingredienti (1 persona)</div><div class="ingr-list">`;
-    bfast.ingredients.forEach(i => {
-      html += `<div class="ingr-row"><span class="ingr-name">${i.n}</span><span class="ingr-qty">${i.q}</span></div>`;
-    });
-    html += `</div><div class="steps-title">Procedimento</div>`;
-    bfast.steps.forEach((s,si) => {
-      html += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`;
-    });
-    html += `<div class="macro-chips">`;
-    bfast.macros.forEach(mc => {
-      const cls = mc.startsWith('P')?'chip-p':mc.startsWith('C')?'chip-c':mc.startsWith('G')?'chip-g':'chip-m';
-      html += `<span class="macro-chip ${cls}">${mc}</span>`;
-    });
-    html += `</div>`;
+function mealCardMain(type, meal) {
+  const id = `${type}_${currentNDay}`;
+  let h = `<div class="meal-card">
+    <div class="meal-header" onclick="toggleMeal('${id}')">
+      <span class="meal-icon">${meal.icon}</span>
+      <span class="meal-name">${meal.name}</span>
+      <span class="meal-time">${meal.time}</span>
+      <span class="meal-arrow" id="arr_${id}">▼</span>
+    </div>
+    <div class="meal-body" id="${id}">
+      <div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;background:#E1F5EE;color:#085041;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;">🌱 Versione vegana</div>
+      <div class="ingr-title">Ingredienti</div>
+      <div class="ingr-row"><span>${meal.prot.vegan}</span><span class="ingr-qty">${meal.prot.qty}</span></div>
+      <div class="ingr-row"><span>${meal.carb.name}</span><span class="ingr-qty">${meal.carb.qty}</span></div>
+      <div class="ingr-row"><span>${meal.veg.name}</span><span class="ingr-qty">200g</span></div>
+      <div class="ingr-row"><span>Condimento</span><span class="ingr-qty">${meal.fat}</span></div>
+      <div class="steps-title">Procedimento</div>`;
+  meal.steps.forEach((s,si) => { h += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`; });
+  h += `<div class="macro-chips">
+    <span class="macro-chip chip-p">P: ${meal.prot.vegan}</span>
+    <span class="macro-chip chip-c">C: ${meal.carb.name}</span>
+    <span class="macro-chip chip-g">G: ${meal.fat}</span>
+    <span class="macro-chip chip-m">M: ${meal.veg.name}</span>
+  </div>`;
+
+  if (showAnimal) {
+    h += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+      <div style="display:inline-flex;background:var(--pink-light);color:var(--pink-dark);font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;margin-bottom:8px;">🥩 Swap per lui — cambia solo la proteina</div>
+      <div class="ingr-row"><span>${meal.prot.animal} (al posto di ${meal.prot.vegan})</span><span class="ingr-qty">${meal.prot.animalQty}</span></div>
+      <div class="steps-title">Come cucinarlo</div>
+      <div class="step-row"><span class="step-num">1</span><span>${meal.prot.animalPrep}</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Verdure, carboidrato e condimento identici — cucinate tutto insieme, cambiate solo la proteina.</span></div>
+    </div>`;
   }
 
-  if (isMainMeal && meal) {
-    // Vegan version
-    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-      <span style="font-size:11px;font-weight:500;background:#E1F5EE;color:#085041;padding:3px 8px;border-radius:10px;">🌱 Versione vegana</span>
-    </div>`;
-    html += `<div class="ingr-title">Ingredienti</div><div class="ingr-list">
-      <div class="ingr-row"><span class="ingr-name">${meal.prot.vegan}</span><span class="ingr-qty">${meal.prot.qty}</span></div>
-      <div class="ingr-row"><span class="ingr-name">${meal.carb.name}</span><span class="ingr-qty">${meal.carb.qty}</span></div>
-      <div class="ingr-row"><span class="ingr-name">${meal.veg.name}</span><span class="ingr-qty">200g</span></div>
-      <div class="ingr-row"><span class="ingr-name">${meal.fat}</span><span class="ingr-qty">—</span></div>
-    </div>`;
-    html += `<div class="steps-title">Procedimento</div>`;
-    meal.steps.forEach((s,si) => {
-      html += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`;
-    });
-    html += `<div class="macro-chips">
-      <span class="macro-chip chip-p">P: ${meal.prot.vegan}</span>
-      <span class="macro-chip chip-c">C: ${meal.carb.name}</span>
-      <span class="macro-chip chip-g">G: ${meal.fat}</span>
-      <span class="macro-chip chip-m">M: ${meal.veg.name}</span>
-    </div>`;
-
-    // Animal swap (conditionally shown)
-    if (showAnimal) {
-      html += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-          <span style="font-size:11px;font-weight:500;background:var(--pink-light);color:var(--pink-dark);padding:3px 8px;border-radius:10px;">🥩 Swap per lui — stessa ricetta, cambia solo la proteina</span>
-        </div>
-        <div class="ingr-list">
-          <div class="ingr-row"><span class="ingr-name">${meal.prot.animal} (sostituisce ${meal.prot.vegan})</span><span class="ingr-qty">${meal.prot.animalQty}</span></div>
-        </div>
-        <div class="steps-title">Come cucinare la sua versione</div>
-        <div class="step-row"><span class="step-num">1</span><span>${meal.prot.animalPrep}</span></div>
-        <div class="step-row"><span class="step-num">2</span><span>Tutto il resto del piatto è identico — stesse verdure, stesso carboidrato, stesso condimento.</span></div>
-      </div>`;
-    }
-  }
-
-  html += `</div></div>`;
-  return html;
+  h += `</div></div>`;
+  return h;
 }
 
 function toggleAnimal() {
@@ -1311,12 +1227,12 @@ function selectNDay(i) {
   renderNutri();
 }
 
-function toggleMeal(bodyId, arrowId) {
-  const body = document.getElementById(bodyId);
-  const arrow = document.getElementById(arrowId);
+function toggleMeal(id) {
+  const body = document.getElementById(id);
+  const arr = document.getElementById('arr_' + id);
   if (!body) return;
   body.classList.toggle('open');
-  if (arrow) arrow.classList.toggle('open');
+  if (arr) arr.classList.toggle('open');
 }
 
 function render() {
