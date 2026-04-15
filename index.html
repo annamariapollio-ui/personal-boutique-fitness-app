@@ -1336,7 +1336,7 @@ function renderNutri() {
   const el = document.getElementById('nutriContent');
   let html = '';
 
-  // === FABBISOGNO CARD ===
+  // ===== FABBISOGNO =====
   html += `<div class="bmr-card">
     <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Il tuo fabbisogno — ricomposizione corporea</div>
     <div class="bmr-row"><span>Calorie giornaliere</span><span class="bmr-val">≈ 2.100–2.200 kcal</span></div>
@@ -1346,91 +1346,174 @@ function renderNutri() {
     <div class="bmr-row"><span>Acqua minima</span><span class="bmr-val">1.925 ml</span></div>
   </div>`;
 
-  // === PORTION GUIDE PER PASTO ===
+  // ===== COLAZIONE =====
+  html += sectionCard('☀️ Colazione', [
+    `<div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Abbina sempre: <strong>carboidrato + proteina + grasso</strong>. Bevanda: caffè, tè verde o matcha senza zucchero.</div>`,
+    bfastGroup('Con yogurt soia o cocco', [
+      { name:'Yogurt soia + frutti di bosco + noci', qty:'150g + 80g + 15g' },
+      { name:'Yogurt soia + granola proteica + frutta', qty:'150g + 40g + 80g' },
+      { name:'Yogurt soia + avena + cioccolato fondente 85%', qty:'150g + 30g + 20g' },
+    ]),
+    bfastGroup('Con pane integrale o fette biscottate', [
+      { name:'Pane integrale + avocado + Philadelphia protein', qty:'2 fette (70g) + ½ avoc. + 40g' },
+      { name:'Fette biscottate + marmellata senza zuccheri + semi di chia', qty:'3 fette + 2 cucchiai + 10g' },
+      { name:'Pane di segale + burro arachidi + mela', qty:'2 fette (60g) + 20g + 1 mela' },
+      { name:'Frisella integrale + hummus + pomodorini + olio evo', qty:'2 friselle + 60g + 100g + 1 cuc.' },
+    ]),
+    bfastGroup('Con avena', [
+      { name:'Porridge avena + mela cotta + cannella + miele + latte vegetale', qty:'60g + 1 mela + latte 180ml' },
+      { name:'Avena + latte vegetale + frutti di bosco + noci', qty:'60g + 150ml + 80g + 15g' },
+      { name:'Avena + cioccolato fondente 85% + mirtilli', qty:'50g + 20g + 80g' },
+    ]),
+    bfastGroup('Con gallette', [
+      { name:'Gallette riso + burro arachidi 100% + frutto', qty:'3 gallette + 20g + 1 frutto' },
+      { name:'Wasa integrale + avocado + pomodorini + olio', qty:'2 cracker + ½ avoc. + 100g' },
+    ]),
+  ]);
+
+  // ===== PRANZO & CENA =====
   html += `<div class="card" style="margin-bottom:14px;">
-    <div class="card-header"><div class="card-title">Quanto mangiare ad ogni pasto</div></div>
-
-    <!-- COLAZIONE -->
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">☀️ Colazione</div>
-      ${mealPortionRow('🌾','Carboidrato','Fiocchi avena / pane integrale / granola','60–70g')}
-      ${mealPortionRow('💪','Proteina','Yogurt soia / tofu strapazzato / burro arachidi','100–150g')}
-      ${mealPortionRow('🥑','Grasso','Avocado / noci / semi / burro arachidi','15–20g')}
-      ${mealPortionRow('🍓','Frutta','Frutta di stagione a piacere','80–100g')}
+    <div class="card-header"><div class="card-title">🍽️ Pranzo &amp; 🌙 Cena — le quantità</div></div>
+    <div style="padding:10px 16px 4px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:22px;font-weight:500;color:#085041;">½</div>
+          <div style="font-size:11px;color:#1D9E75;font-weight:500;">Verdure</div>
+          <div style="font-size:12px;color:#085041;margin-top:2px;">200g</div>
+        </div>
+        <div style="display:grid;grid-template-rows:1fr 1fr;gap:6px;">
+          <div style="background:#FBEAF0;border-radius:10px;padding:8px;text-align:center;">
+            <div style="font-size:11px;color:var(--pink-dark);font-weight:500;">¼ Proteina</div>
+            <div style="font-size:11px;color:var(--pink);margin-top:1px;">tofu/tempeh 150g · legumi 200g</div>
+          </div>
+          <div style="background:#FAEEDA;border-radius:10px;padding:8px;text-align:center;">
+            <div style="font-size:11px;color:#633806;font-weight:500;">¼ Carboidrato</div>
+            <div style="font-size:11px;color:var(--amber);margin-top:1px;">cereali 70–80g secco · patate 200g</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#EEEDFE;border-radius:10px;padding:8px 12px;font-size:12px;color:#3C3489;margin-bottom:12px;">➕ Sempre: <strong>1 cucchiaio olio evo a crudo</strong> oppure ½ avocado oppure 15g noci</div>
     </div>
 
-    <!-- PRANZO -->
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🍽️ Pranzo</div>
-      ${mealPortionRow('🥬','Verdure (½ piatto)','Qualsiasi verdura di stagione','200g')}
-      ${mealPortionRow('💪','Proteina (¼ piatto)','Tofu / tempeh / legumi cotti','150–160g · legumi 200g')}
-      ${mealPortionRow('🌾','Carboidrato (¼ piatto)','Cereali secchi / pasta / patate','70–80g secco · patate 200g')}
-      ${mealPortionRow('🫒','Grasso','Olio evo a crudo — sempre','1 cucchiaio (10ml)')}
+    <div style="padding:0 16px 14px;">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">Proteine vegane — grammi per porzione</div>
+      ${protRow('Seitan','130g','26g P','9g C','143 kcal')}
+      ${protRow('Tempeh','150g','18g P','8g C','165 kcal')}
+      ${protRow('Edamame','180g','17g P','14g C','180 kcal')}
+      ${protRow('Tofu compatto','160g','14g P','3g C','130 kcal')}
+      ${protRow('Lenticchie cotte','200g','13g P','28g C','160 kcal')}
+      ${protRow('Ceci cotti','200g','11g P','27g C','164 kcal')}
+      ${protRow('Tofu silk','200g','9g P','2g C','83 kcal')}
+      ${protRow('Fagioli neri','200g','10g P','27g C','152 kcal')}
     </div>
 
-    <!-- SPUNTINO -->
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🍎 Spuntino (x2 al giorno)</div>
-      ${mealPortionRow('',''1 frutto + frutta secca'','es. mela + 15g mandorle','')}
-      ${mealPortionRow('',''Yogurt + frutto'','100g yogurt soia + frutto','')}
-      ${mealPortionRow('',''Gallette + proteina'','2 gallette + 20g burro arachidi','')}
-      ${mealPortionRow('',''Verdura + proteina'','carote + 40g hummus','')}
-    </div>
-
-    <!-- CENA -->
-    <div style="padding:14px 16px;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🌙 Cena</div>
-      ${mealPortionRow('🥬','Verdure (½ piatto)','Qualsiasi verdura di stagione','200g')}
-      ${mealPortionRow('💪','Proteina (¼ piatto)','Tofu / tempeh / legumi / seitan','150–160g · legumi 200g')}
-      ${mealPortionRow('🌾','Carboidrato (¼ piatto)','Cereali / pasta / patate','70–80g secco · patate 200g')}
-      ${mealPortionRow('🫒','Grasso','Olio evo a crudo','1 cucchiaio (10ml)')}
+    <div style="padding:0 16px 14px;border-top:0.5px solid var(--border);">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin:10px 0 8px;">🥩 Swap per lui — cambia solo la proteina, tutto il resto uguale</div>
+      ${swapRow('Petto di pollo','150g','35g P')}
+      ${swapRow('Salmone','150g','30g P')}
+      ${swapRow('Merluzzo','150g','28g P')}
+      ${swapRow('Fesa tacchino','150g','32g P')}
+      ${swapRow('Gamberi','150g','24g P')}
+      ${swapRow('Orata','150g','27g P')}
+      ${swapRow('Tonno naturale','120g','28g P')}
+      ${swapRow('Uova','3 uova','18g P')}
     </div>
   </div>`;
 
-  // === TABELLA PROTEINE VEGANE ===
-  html += `<div class="card" style="margin-bottom:14px;">
-    <div class="card-header"><div class="card-title">💪 Proteine vegane — grammi per porzione</div></div>
-    <div style="padding:0 16px 8px;">
-      ${protRow('Seitan','130g','26g P','9g C','2g G','143 kcal')}
-      ${protRow('Tempeh','150g','18g P','8g C','7g G','165 kcal')}
-      ${protRow('Edamame','180g','17g P','14g C','8g G','180 kcal')}
-      ${protRow('Tofu compatto','160g','14g P','3g C','7g G','130 kcal')}
-      ${protRow('Lenticchie cotte','200g','13g P','28g C','1g G','160 kcal')}
-      ${protRow('Ceci cotti','200g','11g P','27g C','3g G','164 kcal')}
-      ${protRow('Fagioli neri','200g','10g P','27g C','1g G','152 kcal')}
-      ${protRow('Tofu morbido/silk','200g','9g P','2g C','4g G','83 kcal')}
-      ${protRow('Yogurt soia','150g','8g P','10g C','3g G','100 kcal')}
-      ${protRow('Latte soia','250ml','8g P','9g C','4g G','105 kcal')}
-      ${protRow('Burro arachidi','30g','8g P','6g C','15g G','188 kcal')}
-      ${protRow('Pasta integrale','80g secco','11g P','54g C','2g G','272 kcal')}
-      ${protRow('Quinoa cotta','150g','7g P','30g C','2g G','165 kcal')}
-    </div>
-  </div>`;
+  // ===== SPUNTINI =====
+  html += sectionCard('🍎 Spuntini (mattina e pomeriggio)', [
+    `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Scegli uno per ogni spuntino. Quelli con ● sono industriali — limitali.</div>`,
+    snackLine('Una mela o altro frutto'),
+    snackLine('Un pezzo di Grana Padano (25g)'),
+    snackLine('Yogurt greco di soia + frutta'),
+    snackLine('Frutta secca (15g mandorle o noci)'),
+    snackLine('2 Wasa integrali + tacchino o bresaola (swap)'),
+    snackLine('Carote + hummus'),
+    snackLine('Uovo sodo (swap)'),
+    snackLine('2 gallette + burro arachidi 100%'),
+    snackLine('Kefir di soia + gocce cioccolato fondente'),
+    snackLine('Cioccolato fondente 85% (20g)'),
+    snackLine('Frullato mirtilli + latte di mandorla'),
+    snackLine('● Barretta proteica (Grenade / Enervit)'),
+    snackLine('● 2 gallette con cioccolato fondente'),
+  ]);
 
-  // === SWAP PER LUI ===
+  // ===== PRODOTTI CONSIGLIATI =====
   html += `<div class="card" style="margin-bottom:14px;">
-    <div class="card-header">
-      <div class="card-title">🥩 Swap per lui — stessa porzione, cambia solo la proteina</div>
-    </div>
-    <div style="padding:0 16px 8px;">
-      ${swapRow('Petto di pollo','150g','35g P','0g C','4g G')}
-      ${swapRow('Salmone','150g','30g P','0g C','13g G')}
-      ${swapRow('Merluzzo','150g','28g P','0g C','1g G')}
-      ${swapRow('Orata','150g','27g P','0g C','5g G')}
-      ${swapRow('Gamberi','150g','24g P','0g C','2g G')}
-      ${swapRow('Fesa tacchino','150g','32g P','0g C','2g G')}
-      ${swapRow('Tonno naturale','120g','28g P','0g C','1g G')}
-      ${swapRow('Uova (3)','3 uova','18g P','1g C','15g G')}
-    </div>
-    <div style="padding:10px 16px;font-size:12px;color:var(--text-muted);border-top:0.5px solid var(--border);">Verdure, carboidrati e condimento identici — cucinate insieme, cambiate solo la proteina.</div>
-  </div>`;
+    <div class="card-header"><div class="card-title">🛒 Prodotti consigliati da Giorgia</div></div>`;
 
-  // === SPESA SETTIMANALE ===
-  html += `<div class="shop-card" style="margin-top:4px;"><div class="shop-card-hdr">🛒 Lista della spesa settimanale</div>`;
-  currentShopping.forEach(cat => {
-    html += `<div class="shop-cat"><div class="shop-cat-name">${cat.cat}</div>`;
+  const PRODUCTS = [
+    { cat:'🌾 Carboidrati', items:[
+      'Pasta integrale — Rummo Bio',
+      'Pasta integrale — Hammurabi',
+      'Riso basmati — Scotti',
+      'Riso rosso — Gallo',
+      'Couscous integrale — Probios / Alce Nero',
+      'Fiocchi d\'avena — Germinal Bio',
+      'Fette biscottate integrali — Probios / Germinal Bio',
+      'Pane di segale integrale — Pema / Cèrèal',
+      'Wasa integrali',
+      'Gallette di riso — con cioccolato Gullòn',
+      'Friselle integrali',
+      'Gnocchi integrali — De Cecco',
+    ]},
+    { cat:'🌱 Proteine vegane', items:[
+      'Tofu — Liveg',
+      'Tempeh — Liveg',
+      'Seitan — Vemondo',
+      'Burger vegetali — Vivi verde Bio',
+      'Burger di miglio — Vivi verde',
+      'Hummus di ceci — Noa',
+      'Latte di soia — Granarolo',
+    ]},
+    { cat:'🥛 Latticini vegani', items:[
+      'Yogurt greco — Fage (o versione soia)',
+      'Kefir — Milk (o versione soia)',
+      'Bevanda proteica — Milk Pro',
+      'Fiocchi di latte — Naturella / Exquisa',
+    ]},
+    { cat:'🥑 Grassi sani', items:[
+      'Olio extravergine d\'oliva — a crudo sempre',
+      'Crema di nocciole 100% — Euro Company',
+      'Crema di arachidi 100% — Probios / Fiorentini',
+      'Nocciolata (senza latte) — Novi',
+    ]},
+    { cat:'🍫 Dolci e spuntini ok', items:[
+      'Cioccolato fondente extra 90% — Lindt',
+      'Cioccolato fondente senza zuccheri — 8chocolates',
+      'Biscotti integrali senza zuccheri — Gullòn / Oro Saiwa / Galbusera',
+      'Biscotti di farro — Probios',
+      'Barretta proteica — Grenade / Enervit',
+      'Dessert proteico — Muller',
+    ]},
+    { cat:'🥫 Condimenti ok', items:[
+      'Pesto — Pesto di Prà / Novella / Fratelli Amoretti',
+      'Sugo al pomodoro — Alce Nero',
+      'Sugo arrabbiata — Il Nutrimento',
+      'Ketchup senza sale e zuccheri — Heinz Zero',
+      'Senape — Maille',
+    ]},
+    { cat:'🧊 Surgelati ok', items:[
+      'Filetti di merluzzo — Findus (senza pastella)',
+      'Filetti salmone selvatico — Frosta',
+      'Verdure al naturale — Orogel',
+      'Minestrone bio — Via Verde Bio',
+      'Gamberetti boreali — Conad',
+    ]},
+    { cat:'🌾 Dispensa base', items:[
+      'Marmellata senza zuccheri — Fior di Frutta / Hero / Probios / Zuegg',
+      'Semi di chia, semi di lino',
+      'Tahina',
+      'Aceto di mele',
+      'Brodo vegetale senza dado',
+    ]},
+  ];
+
+  PRODUCTS.forEach(cat => {
+    html += `<div class="shop-cat">
+      <div class="shop-cat-name">${cat.cat}</div>`;
     cat.items.forEach(item => {
-      html += `<div class="shop-item"><span>${item.n}</span><span class="shop-item-qty">${item.q}</span></div>`;
+      html += `<div style="font-size:13px;padding:3px 0;color:var(--text);">${item}</div>`;
     });
     html += `</div>`;
   });
@@ -1439,173 +1522,57 @@ function renderNutri() {
   el.innerHTML = html;
 }
 
-function mealPortionRow(emoji, label, detail, qty) {
-  if (!label) {
-    // snack row without label
-    return `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:13px;">
-      <span style="color:var(--text);">${detail}</span>
-    </div>`;
-  }
-  return `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);">
-    <span style="font-size:14px;width:20px;flex-shrink:0;">${emoji}</span>
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);">${label}</div>
-      <div style="font-size:11px;color:var(--text-muted);">${detail}</div>
+function sectionCard(title, parts) {
+  return `<div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">${title}</div></div>
+    <div style="padding:12px 16px;">
+      ${parts.join('')}
     </div>
-    <div style="font-size:12px;font-weight:500;color:#1D9E75;flex-shrink:0;text-align:right;">${qty}</div>
   </div>`;
 }
 
-function protRow(name, qty, prot, carb, fat, kcal) {
-  return `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border);gap:6px;">
-    <div style="flex:1.2;font-size:13px;font-weight:500;color:var(--text);">${name}</div>
-    <div style="font-size:11px;color:var(--text-muted);flex:0.8;">${qty}</div>
-    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 6px;border-radius:8px;">${prot}</div>
-    <div style="font-size:11px;color:#633806;background:#FAEEDA;padding:2px 6px;border-radius:8px;">${carb}</div>
+function bfastGroup(label, items) {
+  let h = `<div style="font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px;">${label}</div>`;
+  items.forEach(item => {
+    h += `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid var(--border);gap:8px;">
+      <span style="font-size:13px;color:var(--text);">${item.name}</span>
+      <span style="font-size:11px;color:#1D9E75;font-weight:500;flex-shrink:0;">${item.qty}</span>
+    </div>`;
+  });
+  return h;
+}
+
+function snackLine(text) {
+  const isIndustrial = text.startsWith('●');
+  return `<div style="font-size:13px;padding:5px 0;border-bottom:0.5px solid var(--border);color:${isIndustrial?'var(--text-muted)':'var(--text)'};">${text}</div>`;
+}
+
+function protRow(name, qty, prot, carb, kcal) {
+  return `<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);gap:6px;">
+    <div style="flex:1.3;font-size:13px;color:var(--text);">${name}</div>
+    <div style="font-size:11px;color:var(--text-muted);flex:0.7;">${qty}</div>
+    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 7px;border-radius:8px;">${prot}</div>
+    <div style="font-size:11px;color:#633806;background:#FAEEDA;padding:2px 7px;border-radius:8px;">${carb}</div>
     <div style="font-size:11px;color:var(--text-muted);">${kcal}</div>
   </div>`;
 }
 
-function swapRow(name, qty, prot, carb, fat) {
-  return `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border);gap:6px;">
-    <div style="flex:1.2;font-size:13px;font-weight:500;color:var(--text);">${name}</div>
-    <div style="font-size:11px;color:var(--text-muted);flex:0.8;">${qty}</div>
-    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 6px;border-radius:8px;">${prot}</div>
-    <div style="font-size:11px;color:#633806;background:#FAEEDA;padding:2px 6px;border-radius:8px;">${carb}</div>
+function swapRow(name, qty, prot) {
+  return `<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);gap:6px;">
+    <div style="flex:1.3;font-size:13px;color:var(--text);">${name}</div>
+    <div style="font-size:11px;color:var(--text-muted);flex:0.7;">${qty}</div>
+    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 7px;border-radius:8px;">${prot}</div>
   </div>`;
 }
 
-function toggleAnimal() {
-  showAnimal = !showAnimal;
-  renderNutri();
-}
-
-function selectNDay(i) {
-  currentNDay = i;
-  renderNutri();
-}
-
+function toggleAnimal() { showAnimal = !showAnimal; renderNutri(); }
+function selectNDay(i) { currentNDay = i; renderNutri(); }
 function toggleMeal(id) {
   const body = document.getElementById(id);
   const arr = document.getElementById('arr_' + id);
   if (!body) return;
   body.classList.toggle('open');
   if (arr) arr.classList.toggle('open');
-}
-
-
-// ===== PROTEIN TRACKER =====
-const PROT_TARGET = 108;
-
-const PROT_FOODS = [
-  { name:'Tofu compatto', qty:'160g', g:14 },
-  { name:'Tempeh', qty:'150g', g:18 },
-  { name:'Ceci cotti', qty:'200g', g:11 },
-  { name:'Lenticchie cotte', qty:'200g', g:13 },
-  { name:'Edamame', qty:'180g', g:17 },
-  { name:'Seitan', qty:'130g', g:26 },
-  { name:'Fagioli neri', qty:'200g', g:10 },
-  { name:'Yogurt soia', qty:'150g', g:8 },
-  { name:'Latte di soia', qty:'250ml', g:8 },
-  { name:'Burro arachidi', qty:'30g', g:8 },
-  { name:'Fiocchi avena', qty:'60g', g:8 },
-  { name:'Mandorle', qty:'30g', g:6 },
-  { name:'Hummus', qty:'80g', g:5 },
-  { name:'Pasta integrale', qty:'80g secca', g:11 },
-  { name:'Quinoa cotta', qty:'150g', g:7 },
-  { name:'Pane integrale', qty:'70g', g:8 },
-];
-
-function getProteinTotal() {
-  const today = new Date().toDateString();
-  return proteinLog
-    .filter(e => e.date === today)
-    .reduce((sum, e) => sum + e.g, 0);
-}
-
-function updateProtLabel() {
-  const total = getProteinTotal();
-  const el = document.getElementById('protLabel');
-  if (el) el.textContent = `${total} / 108g P`;
-  const pct = Math.min(100, Math.round((total / PROT_TARGET) * 100));
-  // Update colour based on progress
-  const tracker = el ? el.closest('.prot-tracker') : null;
-  if (tracker) {
-    tracker.style.background = total >= PROT_TARGET ? '#E1F5EE' : '';
-    if (el) el.style.color = total >= PROT_TARGET ? '#085041' : '';
-  }
-}
-
-function openProtModal() {
-  renderProtModal();
-  document.getElementById('protModal').classList.add('show');
-}
-
-function closeProtModal() {
-  document.getElementById('protModal').classList.remove('show');
-}
-
-function addProtein(name, g) {
-  const today = new Date().toDateString();
-  proteinLog.push({ name, g, date: today, id: Date.now() });
-  saveState();
-  renderProtModal();
-  updateProtLabel();
-}
-
-function removeProtein(id) {
-  proteinLog = proteinLog.filter(e => e.id !== id);
-  saveState();
-  renderProtModal();
-  updateProtLabel();
-}
-
-function renderProtModal() {
-  const today = new Date().toDateString();
-  const todayLog = proteinLog.filter(e => e.date === today);
-  const total = todayLog.reduce((sum, e) => sum + e.g, 0);
-  const pct = Math.min(100, Math.round((total / PROT_TARGET) * 100));
-
-  // Update total bar
-  const numEl = document.getElementById('protTotalNum');
-  const barEl = document.getElementById('protBarFill');
-  const pctEl = document.getElementById('protBarPct');
-  if (numEl) numEl.textContent = total + 'g';
-  if (barEl) barEl.style.width = pct + '%';
-  if (pctEl) pctEl.textContent = pct + '% del target giornaliero';
-  if (barEl) barEl.style.background = total >= PROT_TARGET ? '#1D9E75' : 'var(--pink)';
-
-  // Log
-  const logEl = document.getElementById('protLog');
-  if (logEl) {
-    if (todayLog.length === 0) {
-      logEl.innerHTML = '';
-    } else {
-      let logHtml = `<div class="prot-log-title">Già registrato oggi</div>`;
-      todayLog.forEach(e => {
-        logHtml += `<div class="prot-log-row">
-          <span>${e.name}</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-weight:500;color:var(--pink);">+${e.g}g</span>
-            <span class="prot-log-del" onclick="removeProtein(${e.id})">×</span>
-          </div>
-        </div>`;
-      });
-      logEl.innerHTML = logHtml;
-    }
-  }
-
-  // Food grid
-  const gridEl = document.getElementById('protFoodGrid');
-  if (gridEl) {
-    gridEl.innerHTML = PROT_FOODS.map(f => `
-      <button class="prot-food-btn" onclick="addProtein('${f.name}', ${f.g})">
-        <span class="prot-food-g">+${f.g}g</span>
-        <div class="prot-food-name">${f.name}</div>
-        <div class="prot-food-qty">${f.qty}</div>
-      </button>
-    `).join('');
-  }
 }
 
 function render() {
