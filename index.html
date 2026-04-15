@@ -74,6 +74,54 @@
   }
   .water-label { font-size: 12px; color: #185FA5; font-weight: 500; }
 
+  .prot-tracker {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--pink-light); border-radius: 20px;
+    padding: 5px 12px; cursor: pointer;
+  }
+  .prot-label { font-size: 12px; color: var(--pink-dark); font-weight: 500; }
+
+  .prot-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 300; display: none; align-items: flex-end;
+    justify-content: center; padding-bottom: 0;
+  }
+  .prot-modal.show { display: flex; }
+  .prot-panel {
+    background: white; border-radius: 20px 20px 0 0;
+    padding: 20px; width: 100%; max-width: 540px;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .prot-panel-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--pink); margin-bottom: 4px; }
+  .prot-panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .prot-total-bar {
+    background: var(--pink-light); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .prot-total-num { font-size: 28px; font-weight: 500; color: var(--pink); }
+  .prot-total-label { font-size: 12px; color: var(--pink-dark); }
+  .prot-bar-wrap { flex: 1; }
+  .prot-bar-bg { height: 6px; background: var(--pink-mid); border-radius: 6px; overflow: hidden; }
+  .prot-bar-fill { height: 100%; background: var(--pink); border-radius: 6px; transition: width 0.3s; }
+  .prot-food-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .prot-food-btn {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 12px; cursor: pointer;
+    text-align: left; font-family: 'DM Sans', sans-serif;
+    transition: all 0.1s;
+  }
+  .prot-food-btn:hover { border-color: var(--pink-mid); background: var(--pink-light); }
+  .prot-food-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .prot-food-qty { font-size: 11px; color: var(--text-muted); }
+  .prot-food-g { font-size: 13px; font-weight: 500; color: var(--pink); float: right; }
+  .prot-log { margin-bottom: 14px; }
+  .prot-log-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 8px; }
+  .prot-log-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .prot-log-row:last-child { border-bottom: none; }
+  .prot-log-del { color: var(--pink); cursor: pointer; font-size: 16px; padding: 0 4px; }
+  .prot-close { width: 100%; padding: 13px; background: var(--gray-light); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; margin-top: 4px; }
+
   /* TAB NAV */
   .tab-nav { display:flex; gap:4px; margin-bottom:14px; background:var(--gray-light); border-radius:10px; padding:3px; }
   .tab-btn { flex:1; border:none; background:none; border-radius:8px; padding:7px 0; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
@@ -525,9 +573,15 @@
       <div class="brand">Boutique del Fitness</div>
       <div class="user-tag">Annamaria Pollio · Programma 3 mesi</div>
     </div>
-    <div class="water-tracker" onclick="cycleWater()">
-      <span style="font-size:16px;">💧</span>
-      <span class="water-label" id="waterLabel">0 / 1925ml</span>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+      <div class="prot-tracker" onclick="openProtModal()">
+        <span style="font-size:14px;">💪</span>
+        <span class="prot-label" id="protLabel">0 / 108g P</span>
+      </div>
+      <div class="water-tracker" onclick="cycleWater()">
+        <span style="font-size:16px;">💧</span>
+        <span class="water-label" id="waterLabel">0 / 1925ml</span>
+      </div>
     </div>
   </div>
   <div class="week-nav" id="weekNav"></div>
@@ -550,6 +604,27 @@
     <div class="cel-title">Bravissima!</div>
     <div class="cel-text" id="celText">Hai completato la giornata. Continua così — ogni allenamento conta!</div>
     <button class="cel-btn" onclick="closeCelebration()">Continua</button>
+  </div>
+</div>
+
+<div class="prot-modal" id="protModal">
+  <div class="prot-panel">
+    <div class="prot-panel-title">💪 Proteine di oggi</div>
+    <div class="prot-panel-sub">Target: 108g/die · ricomposizione corporea</div>
+    <div class="prot-total-bar">
+      <div>
+        <div class="prot-total-num" id="protTotalNum">0g</div>
+        <div class="prot-total-label">su 108g target</div>
+      </div>
+      <div class="prot-bar-wrap">
+        <div class="prot-bar-bg"><div class="prot-bar-fill" id="protBarFill" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="protBarPct">0%</div>
+      </div>
+    </div>
+    <div class="prot-log" id="protLog"></div>
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:10px;">Aggiungi alimento</div>
+    <div class="prot-food-grid" id="protFoodGrid"></div>
+    <button class="prot-close" onclick="closeProtModal()">Chiudi</button>
   </div>
 </div>
 
@@ -686,15 +761,16 @@ function loadState() {
       carryovers: s.carryovers || {},
       glasses: s.glasses || 0,
       suppsChecked: s.suppsChecked || false,
+      proteinLog: s.proteinLog || [],
       lastOpenedDay: s.lastOpenedDay !== undefined ? s.lastOpenedDay : null,
       lastOpenedDate: s.lastOpenedDate || null,
     };
-  } catch(e) { return { checked:{}, completedDays:{}, carryovers:{}, glasses:0, suppsChecked:false, lastOpenedDay:null, lastOpenedDate:null }; }
+  } catch(e) { return { checked:{}, completedDays:{}, carryovers:{}, glasses:0, suppsChecked:false, proteinLog:[], lastOpenedDay:null, lastOpenedDate:null }; }
 }
 
 function saveState() {
   try {
-        localStorage.setItem('bdf_state', JSON.stringify({ checked, completedDays, carryovers, glasses, suppsChecked, lastOpenedDay: currentDay, lastOpenedDate: new Date().toDateString() }));
+        localStorage.setItem('bdf_state', JSON.stringify({ checked, completedDays, carryovers, glasses, suppsChecked, proteinLog, lastOpenedDay: currentDay, lastOpenedDate: new Date().toDateString() }));
   } catch(e) {}
 }
 
@@ -729,6 +805,14 @@ let completedDays = _state.completedDays;
 let glasses = _state.glasses;
 let suppsChecked = _state.suppsChecked;
 let carryovers = _state.carryovers || {};
+let proteinLog = _state.proteinLog || [];
+
+// Reset protein log if it's a new day
+const _today = new Date().toDateString();
+if (_state.lastOpenedDate && _state.lastOpenedDate !== _today) {
+  // Keep entries from today only (in case some were added today already)
+  proteinLog = proteinLog.filter(e => e.date === _today);
+}
 
 // Smart current day
 let currentDay = getSmartCurrentDay();
@@ -1252,81 +1336,97 @@ function renderNutri() {
   const el = document.getElementById('nutriContent');
   let html = '';
 
+  // === FABBISOGNO CARD ===
   html += `<div class="bmr-card">
-    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Il tuo fabbisogno — obiettivo massa</div>
-    <div class="bmr-row"><span>BMR (Harris-Benedict)</span><span class="bmr-val">1.355 kcal</span></div>
-    <div class="bmr-row"><span>TDEE moderatamente attiva (×1.55)</span><span class="bmr-val">2.100 kcal</span></div>
-    <div class="bmr-row"><span>Target massa (+200 kcal surplus)</span><span class="bmr-val">≈ 2.300 kcal</span></div>
-    <div class="bmr-row"><span>Proteine (2g/kg)</span><span class="bmr-val">≈ 108g/die</span></div>
-    <div class="bmr-row"><span>Carboidrati</span><span class="bmr-val">≈ 288g/die</span></div>
-    <div class="bmr-row"><span>Grassi</span><span class="bmr-val">≈ 51g/die</span></div>
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">Il tuo fabbisogno — ricomposizione corporea</div>
+    <div class="bmr-row"><span>Calorie giornaliere</span><span class="bmr-val">≈ 2.100–2.200 kcal</span></div>
+    <div class="bmr-row"><span>Proteine (2g/kg)</span><span class="bmr-val">108g/die</span></div>
+    <div class="bmr-row"><span>Carboidrati</span><span class="bmr-val">≈ 270–290g/die</span></div>
+    <div class="bmr-row"><span>Grassi</span><span class="bmr-val">≈ 50–55g/die</span></div>
     <div class="bmr-row"><span>Acqua minima</span><span class="bmr-val">1.925 ml</span></div>
   </div>`;
 
-  html += `<div class="nutri-tip">🌱 Piano 100% vegano · ½ verdure · ¼ proteine · ¼ carboidrati · olio evo a crudo. Il piano cambia ogni settimana automaticamente.</div>`;
+  // === PORTION GUIDE PER PASTO ===
+  html += `<div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">Quanto mangiare ad ogni pasto</div></div>
 
-  html += `<div class="meal-card" style="margin-bottom:12px;">
-    <div class="meal-header" onclick="toggleMeal('pasta_tip')">
-      <span class="meal-icon">💡</span>
-      <span class="meal-name">Pasta con asparagi — quale proteina?</span>
-      <span class="meal-arrow" id="arr_pasta_tip">▼</span>
+    <!-- COLAZIONE -->
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">☀️ Colazione</div>
+      ${mealPortionRow('🌾','Carboidrato','Fiocchi avena / pane integrale / granola','60–70g')}
+      ${mealPortionRow('💪','Proteina','Yogurt soia / tofu strapazzato / burro arachidi','100–150g')}
+      ${mealPortionRow('🥑','Grasso','Avocado / noci / semi / burro arachidi','15–20g')}
+      ${mealPortionRow('🍓','Frutta','Frutta di stagione a piacere','80–100g')}
     </div>
-    <div class="meal-body" id="pasta_tip">
-      <div style="font-size:13px;color:var(--color-text-secondary,#7a7068);margin-bottom:10px;line-height:1.6;">Gli asparagi sono di stagione adesso — perfetti. Queste 3 proteine si abbinano meglio:</div>
-      <div class="ingr-row"><span style="font-weight:500;">🥇 Tofu morbido sbriciolato</span><span class="ingr-qty">150g</span></div>
-      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Si amalgama come una ricotta — cuoci con olio, curcuma, sale nero</div>
-      <div class="ingr-row"><span style="font-weight:500;">🥈 Ceci croccanti</span><span class="ingr-qty">200g</span></div>
-      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Salta in padella con aglio e olio fino a dorati, poi aggiungi asparagi e pasta</div>
-      <div class="ingr-row"><span style="font-weight:500;">🥉 Edamame</span><span class="ingr-qty">180g</span></div>
-      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Dolci e leggeri — sbollenta 3 min e aggiungili direttamente alla pasta</div>
-      <div class="steps-title">Il tuo piatto completo</div>
-      <div class="step-row"><span class="step-num">C</span><span>Pasta integrale <strong>80g</strong> secca</span></div>
-      <div class="step-row"><span class="step-num">M</span><span>Asparagi <strong>200g</strong> (tagliati a pezzi, saltati 5 min)</span></div>
-      <div class="step-row"><span class="step-num">P</span><span>Proteina scelta (vedi sopra)</span></div>
-      <div class="step-row"><span class="step-num">G</span><span>Olio evo <strong>1 cucchiaio</strong> a crudo + scorza di limone</span></div>
-      <div style="background:#E1F5EE;border-radius:8px;padding:8px 10px;font-size:12px;color:#085041;margin-top:10px;">💡 Facoltativo: lievito alimentare al posto del parmigiano — dà sapore umami senza lattosio</div>
+
+    <!-- PRANZO -->
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🍽️ Pranzo</div>
+      ${mealPortionRow('🥬','Verdure (½ piatto)','Qualsiasi verdura di stagione','200g')}
+      ${mealPortionRow('💪','Proteina (¼ piatto)','Tofu / tempeh / legumi cotti','150–160g · legumi 200g')}
+      ${mealPortionRow('🌾','Carboidrato (¼ piatto)','Cereali secchi / pasta / patate','70–80g secco · patate 200g')}
+      ${mealPortionRow('🫒','Grasso','Olio evo a crudo — sempre','1 cucchiaio (10ml)')}
+    </div>
+
+    <!-- SPUNTINO -->
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🍎 Spuntino (x2 al giorno)</div>
+      ${mealPortionRow('',''1 frutto + frutta secca'','es. mela + 15g mandorle','')}
+      ${mealPortionRow('',''Yogurt + frutto'','100g yogurt soia + frutto','')}
+      ${mealPortionRow('',''Gallette + proteina'','2 gallette + 20g burro arachidi','')}
+      ${mealPortionRow('',''Verdura + proteina'','carote + 40g hummus','')}
+    </div>
+
+    <!-- CENA -->
+    <div style="padding:14px 16px;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">🌙 Cena</div>
+      ${mealPortionRow('🥬','Verdure (½ piatto)','Qualsiasi verdura di stagione','200g')}
+      ${mealPortionRow('💪','Proteina (¼ piatto)','Tofu / tempeh / legumi / seitan','150–160g · legumi 200g')}
+      ${mealPortionRow('🌾','Carboidrato (¼ piatto)','Cereali / pasta / patate','70–80g secco · patate 200g')}
+      ${mealPortionRow('🫒','Grasso','Olio evo a crudo','1 cucchiaio (10ml)')}
     </div>
   </div>`;
 
-  const wn = currentWeekSeed + 1;
-  const wStart = new Date('2026-04-12');
-  wStart.setDate(wStart.getDate() + currentWeekSeed * 7);
-
-  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-    <div style="font-size:13px;font-weight:500;color:var(--text);">Settimana ${wn}</div>
-    <div style="display:flex;align-items:center;gap:8px;background:var(--pink-light);padding:6px 12px;border-radius:20px;cursor:pointer;" onclick="toggleAnimal()">
-      <span style="font-size:12px;color:var(--pink-dark);font-weight:500;">🥩 Swap per lui</span>
-      <label class="toggle" style="pointer-events:none;">
-        <input type="checkbox" ${showAnimal?'checked':''} style="opacity:0;width:0;height:0;">
-        <span class="toggle-slider" style="background:${showAnimal?'var(--pink)':'#D3D1C7'};position:relative;display:inline-block;width:36px;height:20px;border-radius:20px;"></span>
-      </label>
+  // === TABELLA PROTEINE VEGANE ===
+  html += `<div class="card" style="margin-bottom:14px;">
+    <div class="card-header"><div class="card-title">💪 Proteine vegane — grammi per porzione</div></div>
+    <div style="padding:0 16px 8px;">
+      ${protRow('Seitan','130g','26g P','9g C','2g G','143 kcal')}
+      ${protRow('Tempeh','150g','18g P','8g C','7g G','165 kcal')}
+      ${protRow('Edamame','180g','17g P','14g C','8g G','180 kcal')}
+      ${protRow('Tofu compatto','160g','14g P','3g C','7g G','130 kcal')}
+      ${protRow('Lenticchie cotte','200g','13g P','28g C','1g G','160 kcal')}
+      ${protRow('Ceci cotti','200g','11g P','27g C','3g G','164 kcal')}
+      ${protRow('Fagioli neri','200g','10g P','27g C','1g G','152 kcal')}
+      ${protRow('Tofu morbido/silk','200g','9g P','2g C','4g G','83 kcal')}
+      ${protRow('Yogurt soia','150g','8g P','10g C','3g G','100 kcal')}
+      ${protRow('Latte soia','250ml','8g P','9g C','4g G','105 kcal')}
+      ${protRow('Burro arachidi','30g','8g P','6g C','15g G','188 kcal')}
+      ${protRow('Pasta integrale','80g secco','11g P','54g C','2g G','272 kcal')}
+      ${protRow('Quinoa cotta','150g','7g P','30g C','2g G','165 kcal')}
     </div>
   </div>`;
 
-  html += `<div class="nutri-day-nav">`;
-  WEEK_LABELS.forEach((lbl, i) => {
-    const d = new Date(wStart); d.setDate(d.getDate() + i);
-    html += `<button class="nday-btn${i===currentNDay?' active':''}" onclick="selectNDay(${i})">
-      <span class="nday-l">${lbl}</span><span class="nday-n">${d.getDate()}</span>
-    </button>`;
-  });
-  html += `</div>`;
+  // === SWAP PER LUI ===
+  html += `<div class="card" style="margin-bottom:14px;">
+    <div class="card-header">
+      <div class="card-title">🥩 Swap per lui — stessa porzione, cambia solo la proteina</div>
+    </div>
+    <div style="padding:0 16px 8px;">
+      ${swapRow('Petto di pollo','150g','35g P','0g C','4g G')}
+      ${swapRow('Salmone','150g','30g P','0g C','13g G')}
+      ${swapRow('Merluzzo','150g','28g P','0g C','1g G')}
+      ${swapRow('Orata','150g','27g P','0g C','5g G')}
+      ${swapRow('Gamberi','150g','24g P','0g C','2g G')}
+      ${swapRow('Fesa tacchino','150g','32g P','0g C','2g G')}
+      ${swapRow('Tonno naturale','120g','28g P','0g C','1g G')}
+      ${swapRow('Uova (3)','3 uova','18g P','1g C','15g G')}
+    </div>
+    <div style="padding:10px 16px;font-size:12px;color:var(--text-muted);border-top:0.5px solid var(--border);">Verdure, carboidrati e condimento identici — cucinate insieme, cambiate solo la proteina.</div>
+  </div>`;
 
-  const day = currentWeekMeals[currentNDay];
-
-  // Breakfast
-  html += mealCardBfast(day.breakfast);
-  // Snack 1
-  html += snackCard('🍎', 'Spuntino mattina', '10:30', day.snack1);
-  // Lunch
-  html += mealCardMain('lunch', day.lunch);
-  // Snack 2
-  html += snackCard('🌿', 'Spuntino pomeriggio', '16:30', day.snack2);
-  // Dinner
-  html += mealCardMain('dinner', day.dinner);
-
-  // Shopping list
-  html += `<div class="shop-card" style="margin-top:8px;"><div class="shop-card-hdr">🛒 Lista della spesa — Settimana ${wn}</div>`;
+  // === SPESA SETTIMANALE ===
+  html += `<div class="shop-card" style="margin-top:4px;"><div class="shop-card-hdr">🛒 Lista della spesa settimanale</div>`;
   currentShopping.forEach(cat => {
     html += `<div class="shop-cat"><div class="shop-cat-name">${cat.cat}</div>`;
     cat.items.forEach(item => {
@@ -1339,111 +1439,41 @@ function renderNutri() {
   el.innerHTML = html;
 }
 
-function mealCardBfast(b) {
-  const id = `bf_${currentNDay}`;
-  let h = `<div class="meal-card">
-    <div class="meal-header" onclick="toggleMeal('${id}')">
-      <span class="meal-icon">☀️</span>
-      <span class="meal-name">Colazione — ${b.name}</span>
-      <span class="meal-time">07:30</span>
-      <span class="meal-arrow" id="arr_${id}">▼</span>
+function mealPortionRow(emoji, label, detail, qty) {
+  if (!label) {
+    // snack row without label
+    return `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:13px;">
+      <span style="color:var(--text);">${detail}</span>
+    </div>`;
+  }
+  return `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);">
+    <span style="font-size:14px;width:20px;flex-shrink:0;">${emoji}</span>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">${label}</div>
+      <div style="font-size:11px;color:var(--text-muted);">${detail}</div>
     </div>
-    <div class="meal-body" id="${id}">
-      <div class="ingr-title">Ingredienti (1 persona)</div>`;
-  b.ingredients.forEach(i => { h += `<div class="ingr-row"><span>${i.n}</span><span class="ingr-qty">${i.q}</span></div>`; });
-  h += `<div class="steps-title">Procedimento</div>`;
-  b.steps.forEach((s,si) => { h += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`; });
-  h += `<div class="macro-chips">`;
-  b.macros.forEach(m => {
-    const cl = m.startsWith('P')?'chip-p':m.startsWith('C')?'chip-c':m.startsWith('G')?'chip-g':'chip-m';
-    h += `<span class="macro-chip ${cl}">${m}</span>`;
-  });
-  h += `</div></div></div>`;
-  return h;
-}
-
-function snackCard(icon, name, time, s) {
-  return `<div class="meal-card">
-    <div class="meal-header">
-      <span class="meal-icon">${icon}</span>
-      <span class="meal-name">${name}</span>
-      <span class="meal-time">${time}</span>
-    </div>
-    <div class="meal-body open" style="padding:10px 16px;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);">${s.name}</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${s.ingr}</div>
-    </div>
+    <div style="font-size:12px;font-weight:500;color:#1D9E75;flex-shrink:0;text-align:right;">${qty}</div>
   </div>`;
 }
 
-function mealCardMain(type, meal) {
-  const id = `${type}_${currentNDay}`;
-  const totalKcal = (meal.prot.kcal||0) + (meal.carb.kcal||0) + 130;
-  const totalProt = (meal.prot.prot||0) + (meal.carb.prot||0) + 4;
-  const totalCarb = (meal.prot.carb||0) + (meal.carb.carb||0) + 12;
-  const totalFat  = (meal.prot.fat||0)  + (meal.carb.fat||0)  + 10;
-
-  let h = `<div class="meal-card">
-    <div class="meal-header" onclick="toggleMeal('${id}')">
-      <span class="meal-icon">${meal.icon}</span>
-      <span class="meal-name">${meal.name}</span>
-      <span class="meal-time">${meal.time}</span>
-      <span class="meal-arrow" id="arr_${id}">▼</span>
-    </div>
-    <div class="meal-body" id="${id}">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;">
-        <div style="background:#F1EFE8;border-radius:10px;padding:8px;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:#1a1510;">${totalKcal}</div>
-          <div style="font-size:10px;color:#7a7068;">kcal</div>
-        </div>
-        <div style="background:#FBEAF0;border-radius:10px;padding:8px;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:#72243E;">${totalProt}g</div>
-          <div style="font-size:10px;color:#72243E;">proteine</div>
-        </div>
-        <div style="background:#FAEEDA;border-radius:10px;padding:8px;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:#633806;">${totalCarb}g</div>
-          <div style="font-size:10px;color:#633806;">carbo</div>
-        </div>
-        <div style="background:#EEEDFE;border-radius:10px;padding:8px;text-align:center;">
-          <div style="font-size:16px;font-weight:500;color:#3C3489;">${totalFat}g</div>
-          <div style="font-size:10px;color:#3C3489;">grassi</div>
-        </div>
-      </div>
-      <div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;background:#E1F5EE;color:#085041;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;">🌱 Versione vegana</div>
-      <div class="ingr-title">Ingredienti</div>
-      <div class="ingr-row">
-        <div style="flex:1;min-width:0;">
-          <div>${meal.prot.vegan}</div>
-          <div style="font-size:10px;color:#7a7068;">${meal.prot.prot}g P · ${meal.prot.carb}g C · ${meal.prot.fat}g G</div>
-        </div>
-        <span class="ingr-qty">${meal.prot.qty}</span>
-      </div>
-      <div class="ingr-row">
-        <div style="flex:1;min-width:0;">
-          <div>${meal.carb.name}</div>
-          <div style="font-size:10px;color:#7a7068;">${meal.carb.prot}g P · ${meal.carb.carb}g C · ${meal.carb.fat}g G</div>
-        </div>
-        <span class="ingr-qty">${meal.carb.qty}</span>
-      </div>
-      <div class="ingr-row"><span>${meal.veg.name}</span><span class="ingr-qty">200g</span></div>
-      <div class="ingr-row"><span>Condimento</span><span class="ingr-qty">${meal.fat}</span></div>
-      <div class="steps-title">Procedimento</div>`;
-  meal.steps.forEach((s,si) => { h += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`; });
-
-  if (showAnimal) {
-    h += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed rgba(0,0,0,0.08);">
-      <div style="display:inline-flex;background:#FBEAF0;color:#72243E;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;margin-bottom:8px;">🥩 Swap per lui — cambia solo la proteina</div>
-      <div class="ingr-row"><span>${meal.prot.animal} (al posto di ${meal.prot.vegan})</span><span class="ingr-qty">${meal.prot.animalQty}</span></div>
-      <div class="steps-title">Come cucinarlo</div>
-      <div class="step-row"><span class="step-num">1</span><span>${meal.prot.animalPrep}</span></div>
-      <div class="step-row"><span class="step-num">2</span><span>Verdure, carboidrato e condimento identici — cucinate tutto insieme.</span></div>
-    </div>`;
-  }
-
-  h += `</div></div>`;
-  return h;
+function protRow(name, qty, prot, carb, fat, kcal) {
+  return `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border);gap:6px;">
+    <div style="flex:1.2;font-size:13px;font-weight:500;color:var(--text);">${name}</div>
+    <div style="font-size:11px;color:var(--text-muted);flex:0.8;">${qty}</div>
+    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 6px;border-radius:8px;">${prot}</div>
+    <div style="font-size:11px;color:#633806;background:#FAEEDA;padding:2px 6px;border-radius:8px;">${carb}</div>
+    <div style="font-size:11px;color:var(--text-muted);">${kcal}</div>
+  </div>`;
 }
 
+function swapRow(name, qty, prot, carb, fat) {
+  return `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border);gap:6px;">
+    <div style="flex:1.2;font-size:13px;font-weight:500;color:var(--text);">${name}</div>
+    <div style="font-size:11px;color:var(--text-muted);flex:0.8;">${qty}</div>
+    <div style="font-size:11px;font-weight:500;color:#72243E;background:#FBEAF0;padding:2px 6px;border-radius:8px;">${prot}</div>
+    <div style="font-size:11px;color:#633806;background:#FAEEDA;padding:2px 6px;border-radius:8px;">${carb}</div>
+  </div>`;
+}
 
 function toggleAnimal() {
   showAnimal = !showAnimal;
@@ -1463,9 +1493,125 @@ function toggleMeal(id) {
   if (arr) arr.classList.toggle('open');
 }
 
+
+// ===== PROTEIN TRACKER =====
+const PROT_TARGET = 108;
+
+const PROT_FOODS = [
+  { name:'Tofu compatto', qty:'160g', g:14 },
+  { name:'Tempeh', qty:'150g', g:18 },
+  { name:'Ceci cotti', qty:'200g', g:11 },
+  { name:'Lenticchie cotte', qty:'200g', g:13 },
+  { name:'Edamame', qty:'180g', g:17 },
+  { name:'Seitan', qty:'130g', g:26 },
+  { name:'Fagioli neri', qty:'200g', g:10 },
+  { name:'Yogurt soia', qty:'150g', g:8 },
+  { name:'Latte di soia', qty:'250ml', g:8 },
+  { name:'Burro arachidi', qty:'30g', g:8 },
+  { name:'Fiocchi avena', qty:'60g', g:8 },
+  { name:'Mandorle', qty:'30g', g:6 },
+  { name:'Hummus', qty:'80g', g:5 },
+  { name:'Pasta integrale', qty:'80g secca', g:11 },
+  { name:'Quinoa cotta', qty:'150g', g:7 },
+  { name:'Pane integrale', qty:'70g', g:8 },
+];
+
+function getProteinTotal() {
+  const today = new Date().toDateString();
+  return proteinLog
+    .filter(e => e.date === today)
+    .reduce((sum, e) => sum + e.g, 0);
+}
+
+function updateProtLabel() {
+  const total = getProteinTotal();
+  const el = document.getElementById('protLabel');
+  if (el) el.textContent = `${total} / 108g P`;
+  const pct = Math.min(100, Math.round((total / PROT_TARGET) * 100));
+  // Update colour based on progress
+  const tracker = el ? el.closest('.prot-tracker') : null;
+  if (tracker) {
+    tracker.style.background = total >= PROT_TARGET ? '#E1F5EE' : '';
+    if (el) el.style.color = total >= PROT_TARGET ? '#085041' : '';
+  }
+}
+
+function openProtModal() {
+  renderProtModal();
+  document.getElementById('protModal').classList.add('show');
+}
+
+function closeProtModal() {
+  document.getElementById('protModal').classList.remove('show');
+}
+
+function addProtein(name, g) {
+  const today = new Date().toDateString();
+  proteinLog.push({ name, g, date: today, id: Date.now() });
+  saveState();
+  renderProtModal();
+  updateProtLabel();
+}
+
+function removeProtein(id) {
+  proteinLog = proteinLog.filter(e => e.id !== id);
+  saveState();
+  renderProtModal();
+  updateProtLabel();
+}
+
+function renderProtModal() {
+  const today = new Date().toDateString();
+  const todayLog = proteinLog.filter(e => e.date === today);
+  const total = todayLog.reduce((sum, e) => sum + e.g, 0);
+  const pct = Math.min(100, Math.round((total / PROT_TARGET) * 100));
+
+  // Update total bar
+  const numEl = document.getElementById('protTotalNum');
+  const barEl = document.getElementById('protBarFill');
+  const pctEl = document.getElementById('protBarPct');
+  if (numEl) numEl.textContent = total + 'g';
+  if (barEl) barEl.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '% del target giornaliero';
+  if (barEl) barEl.style.background = total >= PROT_TARGET ? '#1D9E75' : 'var(--pink)';
+
+  // Log
+  const logEl = document.getElementById('protLog');
+  if (logEl) {
+    if (todayLog.length === 0) {
+      logEl.innerHTML = '';
+    } else {
+      let logHtml = `<div class="prot-log-title">Già registrato oggi</div>`;
+      todayLog.forEach(e => {
+        logHtml += `<div class="prot-log-row">
+          <span>${e.name}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:500;color:var(--pink);">+${e.g}g</span>
+            <span class="prot-log-del" onclick="removeProtein(${e.id})">×</span>
+          </div>
+        </div>`;
+      });
+      logEl.innerHTML = logHtml;
+    }
+  }
+
+  // Food grid
+  const gridEl = document.getElementById('protFoodGrid');
+  if (gridEl) {
+    gridEl.innerHTML = PROT_FOODS.map(f => `
+      <button class="prot-food-btn" onclick="addProtein('${f.name}', ${f.g})">
+        <span class="prot-food-g">+${f.g}g</span>
+        <div class="prot-food-name">${f.name}</div>
+        <div class="prot-food-qty">${f.qty}</div>
+      </button>
+    `).join('');
+  }
+}
+
 function render() {
   renderNav();
   renderMain();
+  updateProtLabel();
 }
 
 render();
