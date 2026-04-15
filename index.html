@@ -858,10 +858,25 @@ function renderWorkoutCard(d) {
     <div class="gym-version${homeMode?' hidden':''}" id="gymVersion">${exRows}</div>
     <div class="home-version${homeMode?' active':''}" id="homeVersion">
       <div class="home-box">
-        <div class="home-icon">📱</div>
+        <div class="home-icon">${checked[getKey(currentDay,'home_done')] ? '✅' : '📱'}</div>
         <div class="home-title">${d.homeVideo}</div>
         <div class="home-desc">Segui il video del tuo protocollo per questa sessione da casa.<br>Stessa intensità, stesso obiettivo.</div>
-        ${d.homeUrl ? `<a href="${d.homeUrl}" target="_blank" class="video-btn" style="display:inline-flex;text-decoration:none;">▶ Apri video su YouTube</a>` : `<button class="video-btn" style="opacity:0.5;">▶ Video non disponibile</button>`}
+        ${d.homeUrl ? `<a href="${d.homeUrl}" target="_blank" class="video-btn" style="display:inline-flex;text-decoration:none;margin-bottom:10px;">▶ Apri video su YouTube</a>` : `<button class="video-btn" style="opacity:0.5;margin-bottom:10px;">▶ Video non disponibile</button>`}
+        <div style="width:100%;">
+          <div onclick="toggleHomeDone()" style="
+            display:flex;align-items:center;justify-content:center;gap:8px;
+            padding:12px;border-radius:10px;cursor:pointer;margin-top:4px;
+            background:${checked[getKey(currentDay,'home_done')] ? '#E1F5EE' : 'var(--gray-light)'};
+            border:1.5px solid ${checked[getKey(currentDay,'home_done')] ? '#1D9E75' : 'rgba(0,0,0,0.08)'};
+            transition:all 0.15s;">
+            <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${checked[getKey(currentDay,'home_done')] ? '#1D9E75' : 'rgba(0,0,0,0.25)'};background:${checked[getKey(currentDay,'home_done')] ? '#1D9E75' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              ${checked[getKey(currentDay,'home_done')] ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+            </div>
+            <span style="font-size:14px;font-weight:500;color:${checked[getKey(currentDay,'home_done')] ? '#085041' : 'var(--text-muted)'};">
+              ${checked[getKey(currentDay,'home_done')] ? 'Allenamento completato ✓' : 'Segna come fatto'}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="progress-wrap">
@@ -958,6 +973,13 @@ function attachToggle(d) {
 
 function toggleHome(el) { homeMode = el.checked; renderMain(); }
 
+function toggleHomeDone() {
+  const key = getKey(currentDay, 'home_done');
+  checked[key] = !checked[key];
+  saveState();
+  renderMain();
+}
+
 function toggleCarryover(key) {
   checked[key] = !checked[key];
   saveState();
@@ -967,9 +989,14 @@ function toggleCarryover(key) {
 
 function updateProgress(d) {
   if (d.type !== 'workout') return;
-  const total = d.exercises.length;
-  const done = d.exercises.filter(e => checked[getKey(currentDay, e.id)]).length;
-  const pct = Math.round((done/total)*100);
+  let pct;
+  if (homeMode) {
+    pct = checked[getKey(currentDay, 'home_done')] ? 100 : 0;
+  } else {
+    const total = d.exercises.length;
+    const done = d.exercises.filter(e => checked[getKey(currentDay, e.id)]).length;
+    pct = Math.round((done/total)*100);
+  }
   const bar = document.getElementById('exBar');
   const pctEl = document.getElementById('exPct');
   const badge = document.getElementById('workoutBadge');
@@ -997,7 +1024,9 @@ function markDayComplete() {
 
   // Find missed items (not checked) and carry them to next available days
   const missed = [];
-  if (d.exercises) {
+  const homeDone = checked[getKey(currentDay, 'home_done')];
+
+  if (d.exercises && !homeMode && !homeDone) {
     d.exercises.forEach(e => {
       if (e.sets && !checked[getKey(currentDay, e.id)]) {
         missed.push({ type:'exercise', item:e, fromDay:currentDay });
