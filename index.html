@@ -683,17 +683,18 @@ function loadState() {
     return {
       checked: s.checked || {},
       completedDays: s.completedDays || {},
+      carryovers: s.carryovers || {},
       glasses: s.glasses || 0,
       suppsChecked: s.suppsChecked || false,
       lastOpenedDay: s.lastOpenedDay !== undefined ? s.lastOpenedDay : null,
       lastOpenedDate: s.lastOpenedDate || null,
     };
-  } catch(e) { return { checked:{}, completedDays:{}, glasses:0, suppsChecked:false, lastOpenedDay:null, lastOpenedDate:null }; }
+  } catch(e) { return { checked:{}, completedDays:{}, carryovers:{}, glasses:0, suppsChecked:false, lastOpenedDay:null, lastOpenedDate:null }; }
 }
 
 function saveState() {
   try {
-    localStorage.setItem('bdf_state', JSON.stringify({ checked, completedDays, glasses, suppsChecked, lastOpenedDay: currentDay, lastOpenedDate: new Date().toDateString() }));
+        localStorage.setItem('bdf_state', JSON.stringify({ checked, completedDays, carryovers, glasses, suppsChecked, lastOpenedDay: currentDay, lastOpenedDate: new Date().toDateString() }));
   } catch(e) {}
 }
 
@@ -727,6 +728,7 @@ let checked = _state.checked;
 let completedDays = _state.completedDays;
 let glasses = _state.glasses;
 let suppsChecked = _state.suppsChecked;
+let carryovers = _state.carryovers || {};
 
 // Smart current day
 let currentDay = getSmartCurrentDay();
@@ -783,6 +785,24 @@ function renderMain() {
     document.getElementById('bottomBar').style.display = 'block';
   }
 
+  // --- CARRYOVER BANNER ---
+  const todayCarryovers = carryovers[currentDay] || [];
+  if (todayCarryovers.length > 0) {
+    html += `<div style="background:#FAEEDA;border-radius:14px;padding:12px 16px;margin-bottom:12px;border:1px solid rgba(186,117,23,0.2);">
+      <div style="font-size:11px;font-weight:500;color:#BA7517;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">📌 Recuperate dai giorni precedenti</div>`;
+    todayCarryovers.forEach((c, ci) => {
+      const carryKey = `carry_${currentDay}_${ci}`;
+      const isDone = checked[carryKey];
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);cursor:pointer;" onclick="toggleCarryover('${carryKey}')" data-carrykey="${carryKey}">
+        <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+        </div>
+        <div style="flex:1;font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">${c.item.name}</div>
+        <div style="font-size:10px;color:#BA7517;">da Giorno ${c.fromDay + 1}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
   html += renderSupps(d);
 
   main.innerHTML = html;
@@ -938,6 +958,13 @@ function attachToggle(d) {
 
 function toggleHome(el) { homeMode = el.checked; renderMain(); }
 
+function toggleCarryover(key) {
+  checked[key] = !checked[key];
+  saveState();
+  renderMain();
+}
+
+
 function updateProgress(d) {
   if (d.type !== 'workout') return;
   const total = d.exercises.length;
@@ -967,19 +994,53 @@ function updateDoneBtn() {
 function markDayComplete() {
   if (completedDays[currentDay]) return;
   const d = DAYS[currentDay];
+
+  // Find missed items (not checked) and carry them to next available days
+  const missed = [];
+  if (d.exercises) {
+    d.exercises.forEach(e => {
+      if (e.sets && !checked[getKey(currentDay, e.id)]) {
+        missed.push({ type:'exercise', item:e, fromDay:currentDay });
+      }
+    });
+  }
+  if (d.wellness) {
+    d.wellness.forEach(w => {
+      if (!checked[getKey(currentDay, w.id)]) {
+        missed.push({ type:'wellness', item:w, fromDay:currentDay });
+      }
+    });
+  }
+
+  // Store carryovers keyed by target day
+  if (!carryovers) carryovers = {};
+  missed.forEach((m, mi) => {
+    // Spread across next days (up to 3 days ahead), cycling within week
+    const targetDay = (currentDay + 1 + (mi % 3)) % 7;
+    if (!carryovers[targetDay]) carryovers[targetDay] = [];
+    carryovers[targetDay].push(m);
+  });
+
   completedDays[currentDay] = true;
   saveState();
   renderNav();
   updateDoneBtn();
+
+  const hasMissed = missed.length > 0;
   const cel = document.getElementById('celebration');
   const celText = document.getElementById('celText');
-  const messages = [
-    'Hai completato la giornata. Ogni sessione ti avvicina ai tuoi obiettivi!',
-    'Ottimo lavoro! La costanza è tutto — continua così.',
-    'Fantastico! Il tuo corpo ti ringrazierà.',
-    'Brava Annamaria! Un altro step verso il risultato.',
-  ];
-  celText.textContent = messages[Math.floor(Math.random()*messages.length)];
+
+  if (hasMissed) {
+    celText.innerHTML = `Giornata completata! 💪<br><span style="font-size:13px;color:#7a7068;">${missed.length} attivit${missed.length>1?'à':'à'} non completat${missed.length>1?'e':'a'} — le trovi nei prossimi giorni.</span>`;
+  } else {
+    const messages = [
+      'Perfetta! Hai completato tutto. Ogni sessione ti avvicina agli obiettivi!',
+      'Ottimo lavoro! La costanza è tutto — continua così.',
+      'Fantastico! Il tuo corpo ti ringrazierà.',
+      'Brava Annamaria! Giornata al 100%!',
+    ];
+    celText.innerHTML = messages[Math.floor(Math.random()*messages.length)];
+  }
   cel.classList.add('show');
 }
 
@@ -1043,27 +1104,27 @@ function pickRand(arr, seed, i) {
 }
 
 const PROTEIN_POOL = [
-  { vegan:'Tofu compatto', qty:'160g', prep:'Pressa 10 min, taglia a cubetti, marina con tamari e aglio, cuoci in padella 8 min.', animal:'Petto di pollo', animalQty:'150g', animalPrep:'Cuoci in padella con olio e aglio, 6–7 min per lato.' },
-  { vegan:'Tempeh', qty:'150g', prep:'Taglia a fette, rosola in padella con olio e salsa di soia, 4 min per lato.', animal:'Salmone', animalQty:'150g', animalPrep:'Cuoci in padella con olio e limone, 3–4 min per lato.' },
-  { vegan:'Ceci cotti', qty:'200g', prep:'Scola e sciacqua. Salta in padella con olio, curcuma e pepe.', animal:'Merluzzo', animalQty:'150g', animalPrep:'Cuoci al vapore o in padella con erbe, 5–6 min.' },
-  { vegan:'Lenticchie cotte', qty:'200g', prep:'Cuoci in brodo con alloro 20 min (o usa quelle in scatola).', animal:'Orata', animalQty:'150g', animalPrep:'Al forno 180°C con olio e limone, 20 min.' },
-  { vegan:'Edamame', qty:'180g', prep:'Sbollenta 3 min in acqua salata. Scola e sgrana.', animal:'Gamberi', animalQty:'150g', animalPrep:'Salta in padella con aglio e olio, 3 min.' },
-  { vegan:'Fagioli neri', qty:'200g', prep:'Scola, sciacqua, cuoci 5 min in padella con aglio e paprika.', animal:'Fesa di tacchino', animalQty:'150g', animalPrep:'Cuoci a fette in padella, 3 min per lato.' },
-  { vegan:'Seitan', qty:'130g', prep:'Taglia a strisce, cuoci in padella con olio e erbe, 5 min.', animal:'Tonno al naturale', animalQty:'120g', animalPrep:'Apri la scatoletta e usa direttamente.' },
-  { vegan:'Tofu morbido strapazzato', qty:'150g', prep:'Sbriciola in padella con curcuma, sale nero e olio, 5 min.', animal:'Uova strapazzate', animalQty:'3 uova', animalPrep:'Strapazza in padella con olio, 3–4 min.' },
+  { vegan:'Tofu compatto', qty:'160g', kcal:130, prot:14, carb:3, fat:7, prep:'Pressa 10 min, taglia a cubetti, marina con tamari e aglio, cuoci in padella 8 min.', animal:'Petto di pollo', animalQty:'150g', animalPrep:'Cuoci in padella con olio e aglio, 6–7 min per lato.' },
+  { vegan:'Tempeh', qty:'150g', kcal:165, prot:18, carb:8, fat:7, prep:'Taglia a fette, rosola in padella con olio e salsa di soia, 4 min per lato.', animal:'Salmone', animalQty:'150g', animalPrep:'Cuoci in padella con olio e limone, 3–4 min per lato.' },
+  { vegan:'Ceci cotti', qty:'200g', kcal:164, prot:11, carb:27, fat:3, prep:'Scola e sciacqua. Salta in padella con olio, curcuma e pepe.', animal:'Merluzzo', animalQty:'150g', animalPrep:'Cuoci al vapore o in padella con erbe, 5–6 min.' },
+  { vegan:'Lenticchie cotte', qty:'200g', kcal:160, prot:13, carb:28, fat:1, prep:'Cuoci in brodo con alloro 20 min (o usa quelle in scatola).', animal:'Orata', animalQty:'150g', animalPrep:'Al forno 180°C con olio e limone, 20 min.' },
+  { vegan:'Edamame', qty:'180g', kcal:180, prot:17, carb:14, fat:8, prep:'Sbollenta 3 min in acqua salata. Scola e sgrana.', animal:'Gamberi', animalQty:'150g', animalPrep:'Salta in padella con aglio e olio, 3 min.' },
+  { vegan:'Fagioli neri', qty:'200g', kcal:152, prot:10, carb:27, fat:1, prep:'Scola, sciacqua, cuoci 5 min in padella con aglio e paprika.', animal:'Fesa di tacchino', animalQty:'150g', animalPrep:'Cuoci a fette in padella, 3 min per lato.' },
+  { vegan:'Seitan', qty:'130g', kcal:143, prot:26, carb:7, fat:2, prep:'Taglia a strisce, cuoci in padella con olio e erbe, 5 min.', animal:'Tonno al naturale', animalQty:'120g', animalPrep:'Apri la scatoletta e usa direttamente.' },
+  { vegan:'Tofu morbido strapazzato', qty:'150g', kcal:110, prot:11, carb:3, fat:6, prep:'Sbriciola in padella con curcuma, sale nero e olio, 5 min.', animal:'Uova strapazzate', animalQty:'3 uova', animalPrep:'Strapazza in padella con olio, 3–4 min.' },
 ];
 
 const CARB_POOL = [
-  { name:'Riso basmati', qty:'75g secco', cook:'Cuoci in acqua salata 10–12 min.' },
-  { name:'Pasta integrale', qty:'80g secca', cook:'Cuoci al dente secondo le istruzioni.' },
-  { name:'Farro', qty:'75g secco', cook:'Cuoci in acqua salata 20–25 min.' },
-  { name:'Quinoa', qty:'70g secca', cook:'Cuoci 15 min (rapporto 1:2 acqua).' },
-  { name:'Riso nero', qty:'70g secco', cook:'Cuoci 30–35 min in acqua salata.' },
-  { name:'Patate dolci', qty:'200g', cook:'Al forno 200°C per 25 min o al vapore.' },
-  { name:'Orzo perlato', qty:'70g secco', cook:'Cuoci 20 min in acqua salata.' },
-  { name:'Couscous integrale', qty:'70g secco', cook:'Versa acqua bollente, copri 5 min.' },
-  { name:'Patate comuni', qty:'200g', cook:'Lessa 20 min o cuoci al forno.' },
-  { name:'Gnocchi integrali', qty:'150g', cook:'Lessali 2–3 min in acqua salata.' },
+  { name:'Riso basmati', qty:'75g secco', kcal:265, prot:5, carb:58, fat:1, cook:'Cuoci in acqua salata 10–12 min.' },
+  { name:'Pasta integrale', qty:'80g secca', kcal:272, prot:11, carb:54, fat:2, cook:'Cuoci al dente secondo le istruzioni.' },
+  { name:'Farro', qty:'75g secco', kcal:258, prot:10, carb:52, fat:2, cook:'Cuoci in acqua salata 20–25 min.' },
+  { name:'Quinoa', qty:'70g secca', kcal:252, prot:9, carb:44, fat:4, cook:'Cuoci 15 min (rapporto 1:2 acqua).' },
+  { name:'Riso nero', qty:'70g secco', kcal:245, prot:7, carb:51, fat:2, cook:'Cuoci 30–35 min in acqua salata.' },
+  { name:'Patate dolci', qty:'200g', kcal:172, prot:3, carb:40, fat:0, cook:'Al forno 200°C per 25 min o al vapore.' },
+  { name:'Orzo perlato', qty:'70g secco', kcal:245, prot:7, carb:51, fat:1, cook:'Cuoci 20 min in acqua salata.' },
+  { name:'Couscous integrale', qty:'70g secco', kcal:252, prot:9, carb:51, fat:2, cook:'Versa acqua bollente, copri 5 min.' },
+  { name:'Patate comuni', qty:'200g', kcal:154, prot:4, carb:35, fat:0, cook:'Lessa 20 min o cuoci al forno.' },
+  { name:'Gnocchi integrali', qty:'150g', kcal:198, prot:5, carb:42, fat:1, cook:'Lessali 2–3 min in acqua salata.' },
 ];
 
 const VEG_POOL = [
@@ -1288,6 +1349,11 @@ function snackCard(icon, name, time, s) {
 
 function mealCardMain(type, meal) {
   const id = `${type}_${currentNDay}`;
+  const totalKcal = (meal.prot.kcal||0) + (meal.carb.kcal||0) + 130;
+  const totalProt = (meal.prot.prot||0) + (meal.carb.prot||0) + 4;
+  const totalCarb = (meal.prot.carb||0) + (meal.carb.carb||0) + 12;
+  const totalFat  = (meal.prot.fat||0)  + (meal.carb.fat||0)  + 10;
+
   let h = `<div class="meal-card">
     <div class="meal-header" onclick="toggleMeal('${id}')">
       <span class="meal-icon">${meal.icon}</span>
@@ -1296,34 +1362,59 @@ function mealCardMain(type, meal) {
       <span class="meal-arrow" id="arr_${id}">▼</span>
     </div>
     <div class="meal-body" id="${id}">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;">
+        <div style="background:#F1EFE8;border-radius:10px;padding:8px;text-align:center;">
+          <div style="font-size:16px;font-weight:500;color:#1a1510;">${totalKcal}</div>
+          <div style="font-size:10px;color:#7a7068;">kcal</div>
+        </div>
+        <div style="background:#FBEAF0;border-radius:10px;padding:8px;text-align:center;">
+          <div style="font-size:16px;font-weight:500;color:#72243E;">${totalProt}g</div>
+          <div style="font-size:10px;color:#72243E;">proteine</div>
+        </div>
+        <div style="background:#FAEEDA;border-radius:10px;padding:8px;text-align:center;">
+          <div style="font-size:16px;font-weight:500;color:#633806;">${totalCarb}g</div>
+          <div style="font-size:10px;color:#633806;">carbo</div>
+        </div>
+        <div style="background:#EEEDFE;border-radius:10px;padding:8px;text-align:center;">
+          <div style="font-size:16px;font-weight:500;color:#3C3489;">${totalFat}g</div>
+          <div style="font-size:10px;color:#3C3489;">grassi</div>
+        </div>
+      </div>
       <div style="display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;background:#E1F5EE;color:#085041;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;">🌱 Versione vegana</div>
       <div class="ingr-title">Ingredienti</div>
-      <div class="ingr-row"><span>${meal.prot.vegan}</span><span class="ingr-qty">${meal.prot.qty}</span></div>
-      <div class="ingr-row"><span>${meal.carb.name}</span><span class="ingr-qty">${meal.carb.qty}</span></div>
+      <div class="ingr-row">
+        <div style="flex:1;min-width:0;">
+          <div>${meal.prot.vegan}</div>
+          <div style="font-size:10px;color:#7a7068;">${meal.prot.prot}g P · ${meal.prot.carb}g C · ${meal.prot.fat}g G</div>
+        </div>
+        <span class="ingr-qty">${meal.prot.qty}</span>
+      </div>
+      <div class="ingr-row">
+        <div style="flex:1;min-width:0;">
+          <div>${meal.carb.name}</div>
+          <div style="font-size:10px;color:#7a7068;">${meal.carb.prot}g P · ${meal.carb.carb}g C · ${meal.carb.fat}g G</div>
+        </div>
+        <span class="ingr-qty">${meal.carb.qty}</span>
+      </div>
       <div class="ingr-row"><span>${meal.veg.name}</span><span class="ingr-qty">200g</span></div>
       <div class="ingr-row"><span>Condimento</span><span class="ingr-qty">${meal.fat}</span></div>
       <div class="steps-title">Procedimento</div>`;
   meal.steps.forEach((s,si) => { h += `<div class="step-row"><span class="step-num">${si+1}</span><span>${s}</span></div>`; });
-  h += `<div class="macro-chips">
-    <span class="macro-chip chip-p">P: ${meal.prot.vegan}</span>
-    <span class="macro-chip chip-c">C: ${meal.carb.name}</span>
-    <span class="macro-chip chip-g">G: ${meal.fat}</span>
-    <span class="macro-chip chip-m">M: ${meal.veg.name}</span>
-  </div>`;
 
   if (showAnimal) {
-    h += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
-      <div style="display:inline-flex;background:var(--pink-light);color:var(--pink-dark);font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;margin-bottom:8px;">🥩 Swap per lui — cambia solo la proteina</div>
+    h += `<div style="margin-top:14px;padding-top:12px;border-top:1px dashed rgba(0,0,0,0.08);">
+      <div style="display:inline-flex;background:#FBEAF0;color:#72243E;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px;margin-bottom:8px;">🥩 Swap per lui — cambia solo la proteina</div>
       <div class="ingr-row"><span>${meal.prot.animal} (al posto di ${meal.prot.vegan})</span><span class="ingr-qty">${meal.prot.animalQty}</span></div>
       <div class="steps-title">Come cucinarlo</div>
       <div class="step-row"><span class="step-num">1</span><span>${meal.prot.animalPrep}</span></div>
-      <div class="step-row"><span class="step-num">2</span><span>Verdure, carboidrato e condimento identici — cucinate tutto insieme, cambiate solo la proteina.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Verdure, carboidrato e condimento identici — cucinate tutto insieme.</span></div>
     </div>`;
   }
 
   h += `</div></div>`;
   return h;
 }
+
 
 function toggleAnimal() {
   showAnimal = !showAnimal;
