@@ -120,6 +120,9 @@
   .bmr-row:last-child { border-bottom:none; }
   .bmr-val { font-weight:500; color:var(--teal); }
 
+  .day-btn.today .day-num { color: var(--pink); }
+  .day-btn.today:not(.active) { border-color: var(--pink-mid); }
+
   /* WEEK NAV */
   .week-nav {
     display: grid;
@@ -551,6 +554,16 @@
 </div>
 
 <script>
+// Build dynamic dates for the current week cycle
+function getDayDate(offset) {
+  const now = new Date();
+  const diffDays = Math.floor((now - PROGRAMME_START) / (1000*60*60*24));
+  const weekStart = diffDays - (diffDays % 7);
+  const d = new Date(PROGRAMME_START);
+  d.setDate(d.getDate() + weekStart + offset);
+  return { date: d.getDate(), month: d.toLocaleString('it-IT',{month:'short'}), label: ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'][offset] };
+}
+
 const DAYS = [
   {
     label:'Sab', date:12, month:'Apr', name:'Giorno 1',
@@ -645,39 +658,109 @@ const DAYS = [
   }
 ];
 
-let currentDay = 1;
+// ===== PROGRAMME START DATE =====
+const PROGRAMME_START = new Date('2026-04-12'); // Day 0 = Saturday Apr 12
+
+function getDayIndex() {
+  // Returns which day of the 7-day cycle we're on today (0–6)
+  const now = new Date();
+  const diffMs = now - PROGRAMME_START;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return ((diffDays % 7) + 7) % 7;
+}
+
+function getTodayLabel() {
+  const idx = getDayIndex();
+  const d = new Date(PROGRAMME_START);
+  d.setDate(d.getDate() + Math.floor((new Date() - PROGRAMME_START) / (1000*60*60*24)));
+  return { dayIdx: idx, date: d.getDate(), month: d.toLocaleString('it-IT',{month:'short'}) };
+}
+
+// ===== PERSISTENT STORAGE =====
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('bdf_state') || '{}');
+    return {
+      checked: s.checked || {},
+      completedDays: s.completedDays || {},
+      glasses: s.glasses || 0,
+      suppsChecked: s.suppsChecked || false,
+      lastOpenedDay: s.lastOpenedDay !== undefined ? s.lastOpenedDay : null,
+      lastOpenedDate: s.lastOpenedDate || null,
+    };
+  } catch(e) { return { checked:{}, completedDays:{}, glasses:0, suppsChecked:false, lastOpenedDay:null, lastOpenedDate:null }; }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('bdf_state', JSON.stringify({ checked, completedDays, glasses, suppsChecked, lastOpenedDay: currentDay, lastOpenedDate: new Date().toDateString() }));
+  } catch(e) {}
+}
+
+// ===== SMART DAY DETECTION =====
+function getSmartCurrentDay() {
+  const state = loadState();
+  const todayIdx = getDayIndex();
+  const todayDateStr = new Date().toDateString();
+
+  // If opening on same day as last time → stay on that day
+  if (state.lastOpenedDate === todayDateStr) {
+    return state.lastOpenedDay !== null ? state.lastOpenedDay : todayIdx;
+  }
+
+  // New day: check if yesterday had no activity (catch-up logic)
+  // If yesterday's day had no checked items and wasn't completed → auto-advance to today
+  const yesterdayIdx = ((todayIdx - 1) + 7) % 7;
+  const yesterdayD = DAYS[yesterdayIdx];
+  const yesterdayHadActivity = state.completedDays[yesterdayIdx] ||
+    (yesterdayD.exercises && yesterdayD.exercises.some(e => state.checked[`d${yesterdayIdx}_${e.id}`])) ||
+    (yesterdayD.wellness && yesterdayD.wellness.some(w => state.checked[`d${yesterdayIdx}_${w.id}`]));
+
+  // Always open on today's day
+  return todayIdx;
+}
+
+// Load persisted state
+const _state = loadState();
 let homeMode = false;
-let checked = {};
-let completedDays = {0: true};
-let glasses = 0;
-let suppsChecked = false;
+let checked = _state.checked;
+let completedDays = _state.completedDays;
+let glasses = _state.glasses;
+let suppsChecked = _state.suppsChecked;
+
+// Smart current day
+let currentDay = getSmartCurrentDay();
 
 function getKey(dayIdx, id) { return `d${dayIdx}_${id}`; }
 
 function renderNav() {
   const nav = document.getElementById('weekNav');
   nav.innerHTML = '';
+  const todayIdx = getDayIndex();
   DAYS.forEach((d,i) => {
+    const dynDate = getDayDate(i);
     const btn = document.createElement('button');
     btn.className = 'day-btn' +
       (i === currentDay ? ' active' : '') +
       (d.type === 'rest' || d.type === 'fullrest' ? ' rest-day' : '') +
       (d.type === 'fullrest' ? ' full-rest' : '') +
       (completedDays[i] ? ' done-day' : '') +
-      (d.type === 'workout' ? ' has-workout' : '');
-    btn.innerHTML = `<span class="day-letter">${d.label}</span><span class="day-num">${d.date}</span><div class="day-dot"></div>`;
-    btn.onclick = () => { currentDay = i; render(); };
+      (d.type === 'workout' ? ' has-workout' : '') +
+      (i === todayIdx ? ' today' : '');
+    btn.innerHTML = `<span class="day-letter">${dynDate.label}</span><span class="day-num">${dynDate.date}</span><div class="day-dot"></div>`;
+    btn.onclick = () => { currentDay = i; saveState(); render(); };
     nav.appendChild(btn);
   });
 }
 
 function renderMain() {
   const d = DAYS[currentDay];
+  const dynDate = getDayDate(currentDay);
   const main = document.getElementById('mainContent');
   let html = '';
 
   html += `<div class="date-headline">
-    <div class="date-title">${d.label} ${d.date} ${d.month}</div>
+    <div class="date-title">${dynDate.label} ${dynDate.date} ${dynDate.month}</div>
     <div class="date-sub">${d.name}</div>
   </div>`;
 
@@ -824,6 +907,7 @@ function attachExerciseClicks(d) {
       row.classList.toggle('done', checked[key]);
       const note = row.querySelector('.ex-note');
       if (note) note.classList.toggle('visible', checked[key]);
+      saveState();
       updateProgress(d);
       updateDoneBtn();
     };
@@ -836,6 +920,7 @@ function attachWellnessClicks(d) {
       const key = row.dataset.wkey;
       checked[key] = !checked[key];
       row.classList.toggle('done', checked[key]);
+      saveState();
       updateDoneBtn();
     };
   });
@@ -843,7 +928,7 @@ function attachWellnessClicks(d) {
 
 function attachSuppsClick() {
   const card = document.getElementById('suppsCard');
-  if (card) card.onclick = () => { suppsChecked = !suppsChecked; renderMain(); };
+  if (card) card.onclick = () => { suppsChecked = !suppsChecked; saveState(); renderMain(); };
 }
 
 function attachToggle(d) {
@@ -883,6 +968,7 @@ function markDayComplete() {
   if (completedDays[currentDay]) return;
   const d = DAYS[currentDay];
   completedDays[currentDay] = true;
+  saveState();
   renderNav();
   updateDoneBtn();
   const cel = document.getElementById('celebration');
@@ -901,14 +987,13 @@ function closeCelebration() {
   document.getElementById('celebration').classList.remove('show');
 }
 
-let waterGlasses = 0;
 const GLASS_ML = 275;
 const TARGET_ML = 1925;
 const GLASS_COUNT = Math.ceil(TARGET_ML / GLASS_ML);
 
 function buildWaterGlasses() {
-  // simple cycle
-  waterGlasses = (waterGlasses + 1) % (GLASS_COUNT + 1);
+  glasses = (glasses + 1) % (GLASS_COUNT + 1);
+  saveState();
   updateWaterLabel();
 }
 
@@ -916,7 +1001,7 @@ function cycleWater() { buildWaterGlasses(); }
 
 function updateWaterLabel() {
   const el = document.getElementById('waterLabel');
-  if (el) el.textContent = `${waterGlasses * GLASS_ML} / 1925ml`;
+  if (el) el.textContent = `${glasses * GLASS_ML} / 1925ml`;
 }
 
 
@@ -1089,6 +1174,29 @@ function renderNutri() {
   </div>`;
 
   html += `<div class="nutri-tip">🌱 Piano 100% vegano · ½ verdure · ¼ proteine · ¼ carboidrati · olio evo a crudo. Il piano cambia ogni settimana automaticamente.</div>`;
+
+  html += `<div class="meal-card" style="margin-bottom:12px;">
+    <div class="meal-header" onclick="toggleMeal('pasta_tip')">
+      <span class="meal-icon">💡</span>
+      <span class="meal-name">Pasta con asparagi — quale proteina?</span>
+      <span class="meal-arrow" id="arr_pasta_tip">▼</span>
+    </div>
+    <div class="meal-body" id="pasta_tip">
+      <div style="font-size:13px;color:var(--color-text-secondary,#7a7068);margin-bottom:10px;line-height:1.6;">Gli asparagi sono di stagione adesso — perfetti. Queste 3 proteine si abbinano meglio:</div>
+      <div class="ingr-row"><span style="font-weight:500;">🥇 Tofu morbido sbriciolato</span><span class="ingr-qty">150g</span></div>
+      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Si amalgama come una ricotta — cuoci con olio, curcuma, sale nero</div>
+      <div class="ingr-row"><span style="font-weight:500;">🥈 Ceci croccanti</span><span class="ingr-qty">200g</span></div>
+      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Salta in padella con aglio e olio fino a dorati, poi aggiungi asparagi e pasta</div>
+      <div class="ingr-row"><span style="font-weight:500;">🥉 Edamame</span><span class="ingr-qty">180g</span></div>
+      <div style="font-size:11px;color:#7a7068;padding:3px 0 6px;">Dolci e leggeri — sbollenta 3 min e aggiungili direttamente alla pasta</div>
+      <div class="steps-title">Il tuo piatto completo</div>
+      <div class="step-row"><span class="step-num">C</span><span>Pasta integrale <strong>80g</strong> secca</span></div>
+      <div class="step-row"><span class="step-num">M</span><span>Asparagi <strong>200g</strong> (tagliati a pezzi, saltati 5 min)</span></div>
+      <div class="step-row"><span class="step-num">P</span><span>Proteina scelta (vedi sopra)</span></div>
+      <div class="step-row"><span class="step-num">G</span><span>Olio evo <strong>1 cucchiaio</strong> a crudo + scorza di limone</span></div>
+      <div style="background:#E1F5EE;border-radius:8px;padding:8px 10px;font-size:12px;color:#085041;margin-top:10px;">💡 Facoltativo: lievito alimentare al posto del parmigiano — dà sapore umami senza lattosio</div>
+    </div>
+  </div>`;
 
   const wn = currentWeekSeed + 1;
   const wStart = new Date('2026-04-12');
