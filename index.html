@@ -181,23 +181,23 @@
     background: none;
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 8px 4px 6px;
+    padding: 10px 2px 8px;
     cursor: pointer;
     text-align: center;
     transition: all 0.15s;
     position: relative;
+    min-height: 48px;
   }
   .day-btn:hover { border-color: var(--pink-mid); }
   .day-btn.active {
     background: var(--pink);
     border-color: var(--pink);
   }
-  .day-btn.active .day-letter,
-  .day-btn.active .day-num { color: white; }
+  .day-btn.active .day-letter { color: white; }
   .day-btn.rest-day { background: var(--gray-light); }
   .day-btn.full-rest { opacity: 0.5; }
-  .day-letter { font-size: 10px; font-weight: 500; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.06em; }
-  .day-num { font-size: 15px; font-weight: 500; color: var(--text); display: block; margin-top: 2px; }
+  .day-letter { font-size: 11px; font-weight: 500; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+  .day-num { display: none; }
   .day-dot {
     width: 5px; height: 5px; border-radius: 50%;
     margin: 4px auto 0;
@@ -571,7 +571,10 @@
   <div class="header-top">
     <div>
       <div class="brand">Boutique del Fitness</div>
-      <div class="user-tag">Annamaria Pollio · Programma 3 mesi</div>
+      <div class="user-tag" style="display:flex;align-items:center;gap:8px;">
+        <span>Annamaria Pollio · 3 mesi</span>
+        <span onclick="confirmReset()" style="font-size:11px;color:var(--pink);cursor:pointer;text-decoration:underline;">reset</span>
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
       <div class="prot-tracker" onclick="openProtModal()">
@@ -630,13 +633,14 @@
 
 <script>
 // Build dynamic dates for the current week cycle
+const DAY_FULL_NAMES = ['Sabato','Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
+const DAY_SHORT_NAMES = ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'];
+
 function getDayDate(offset) {
-  const now = new Date();
-  const diffDays = Math.floor((now - PROGRAMME_START) / (1000*60*60*24));
-  const weekStart = diffDays - (diffDays % 7);
-  const d = new Date(PROGRAMME_START);
-  d.setDate(d.getDate() + weekStart + offset);
-  return { date: d.getDate(), month: d.toLocaleString('it-IT',{month:'short'}), label: ['Sab','Dom','Lun','Mar','Mer','Gio','Ven'][offset] };
+  return {
+    label: DAY_SHORT_NAMES[offset],
+    full: DAY_FULL_NAMES[offset],
+  };
 }
 
 const DAYS = [
@@ -833,7 +837,7 @@ function renderNav() {
       (completedDays[i] ? ' done-day' : '') +
       (d.type === 'workout' ? ' has-workout' : '') +
       (i === todayIdx ? ' today' : '');
-    btn.innerHTML = `<span class="day-letter">${dynDate.label}</span><span class="day-num">${dynDate.date}</span><div class="day-dot"></div>`;
+    btn.innerHTML = `<span class="day-letter">${dynDate.label}</span><div class="day-dot"></div>`;
     btn.onclick = () => { currentDay = i; saveState(); render(); };
     nav.appendChild(btn);
   });
@@ -846,8 +850,8 @@ function renderMain() {
   let html = '';
 
   html += `<div class="date-headline">
-    <div class="date-title">${dynDate.label} ${dynDate.date} ${dynDate.month}</div>
-    <div class="date-sub">${d.name}</div>
+    <div class="date-title">${dynDate.full}</div>
+    <div class="date-sub">${d.name} · ${d.workoutName || (d.type === 'rest' ? 'Recupero attivo' : 'Riposo totale')}</div>
   </div>`;
 
   if (d.type === 'fullrest') {
@@ -873,16 +877,21 @@ function renderMain() {
   const todayCarryovers = carryovers[currentDay] || [];
   if (todayCarryovers.length > 0) {
     html += `<div style="background:#FAEEDA;border-radius:14px;padding:12px 16px;margin-bottom:12px;border:1px solid rgba(186,117,23,0.2);">
-      <div style="font-size:11px;font-weight:500;color:#BA7517;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">📌 Recuperate dai giorni precedenti</div>`;
+      <div style="font-size:11px;font-weight:500;color:#BA7517;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">📌 Da recuperare</div>`;
     todayCarryovers.forEach((c, ci) => {
       const carryKey = `carry_${currentDay}_${ci}`;
       const isDone = checked[carryKey];
-      html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);cursor:pointer;" onclick="toggleCarryover('${carryKey}')" data-carrykey="${carryKey}">
-        <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      const isWorkout = c.type === 'workout';
+      const fromDayName = DAY_FULL_NAMES[c.fromDay] || `Giorno ${c.fromDay + 1}`;
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);cursor:pointer;" onclick="toggleCarryover('${carryKey}')">
+        <div style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
         </div>
-        <div style="flex:1;font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">${c.item.name}</div>
-        <div style="font-size:10px;color:#BA7517;">da Giorno ${c.fromDay + 1}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">${isWorkout?'🏋️ ':''} ${c.item.name}</div>
+          <div style="font-size:11px;color:#BA7517;">recuperato da ${fromDayName}</div>
+        </div>
+        ${isDone ? '' : `<div style="font-size:10px;background:#BA7517;color:white;padding:3px 8px;border-radius:8px;font-weight:500;">fatto ✓</div>`}
       </div>`;
     });
     html += `</div>`;
@@ -1070,6 +1079,22 @@ function toggleCarryover(key) {
   renderMain();
 }
 
+function confirmReset() {
+  if (confirm('Sei sicura di voler resettare tutto? Perderai tutti i progressi salvati.')) {
+    localStorage.removeItem('bdf_state');
+    checked = {};
+    completedDays = {};
+    carryovers = {};
+    glasses = 0;
+    suppsChecked = false;
+    proteinLog = [];
+    homeMode = false;
+    currentDay = getDayIndex();
+    render();
+    updateProtLabel();
+  }
+}
+
 
 function updateProgress(d) {
   if (d.type !== 'workout') return;
@@ -1106,17 +1131,17 @@ function markDayComplete() {
   if (completedDays[currentDay]) return;
   const d = DAYS[currentDay];
 
-  // Find missed items (not checked) and carry them to next available days
   const missed = [];
   const homeDone = checked[getKey(currentDay, 'home_done')];
+  const gymDone = d.exercises && d.exercises.filter(e => e.sets).every(e => checked[getKey(currentDay, e.id)]);
+  const workoutDone = homeDone || gymDone;
 
-  if (d.exercises && !homeMode && !homeDone) {
-    d.exercises.forEach(e => {
-      if (e.sets && !checked[getKey(currentDay, e.id)]) {
-        missed.push({ type:'exercise', item:e, fromDay:currentDay });
-      }
-    });
+  // If it's a workout day and neither gym nor home was completed → carry the whole workout
+  if (d.type === 'workout' && !workoutDone) {
+    missed.push({ type:'workout', item:{ name: d.workoutName, workoutDay: currentDay }, fromDay:currentDay });
   }
+
+  // Carry missed wellness rituals
   if (d.wellness) {
     d.wellness.forEach(w => {
       if (!checked[getKey(currentDay, w.id)]) {
@@ -1125,13 +1150,13 @@ function markDayComplete() {
     });
   }
 
-  // Store carryovers keyed by target day
   if (!carryovers) carryovers = {};
   missed.forEach((m, mi) => {
-    // Spread across next days (up to 3 days ahead), cycling within week
-    const targetDay = (currentDay + 1 + (mi % 3)) % 7;
+    const targetDay = (currentDay + 1 + (mi % 2)) % 7;
     if (!carryovers[targetDay]) carryovers[targetDay] = [];
-    carryovers[targetDay].push(m);
+    // Avoid duplicates
+    const exists = carryovers[targetDay].some(c => c.item.name === m.item.name && c.fromDay === m.fromDay);
+    if (!exists) carryovers[targetDay].push(m);
   });
 
   completedDays[currentDay] = true;
@@ -1139,18 +1164,23 @@ function markDayComplete() {
   renderNav();
   updateDoneBtn();
 
-  const hasMissed = missed.length > 0;
   const cel = document.getElementById('celebration');
   const celText = document.getElementById('celText');
 
-  if (hasMissed) {
-    celText.innerHTML = `Giornata completata! 💪<br><span style="font-size:13px;color:#7a7068;">${missed.length} attivit${missed.length>1?'à':'à'} non completat${missed.length>1?'e':'a'} — le trovi nei prossimi giorni.</span>`;
+  if (missed.length > 0) {
+    const workoutMissed = missed.find(m => m.type === 'workout');
+    const wellnessMissed = missed.filter(m => m.type === 'wellness');
+    let msg = `Giornata segnata! 📌<br><div style="font-size:12px;color:#7a7068;margin-top:6px;">`;
+    if (workoutMissed) msg += `🏋️ ${workoutMissed.item.name} → passa a ${DAY_FULL_NAMES[(currentDay+1)%7]}<br>`;
+    if (wellnessMissed.length > 0) msg += `🌿 ${wellnessMissed.length} rituale${wellnessMissed.length>1?'i':''} → passano ai prossimi giorni`;
+    msg += `</div>`;
+    celText.innerHTML = msg;
   } else {
     const messages = [
-      'Perfetta! Hai completato tutto. Ogni sessione ti avvicina agli obiettivi!',
+      'Perfetta! Tutto completato 💪 Ogni sessione ti avvicina agli obiettivi!',
       'Ottimo lavoro! La costanza è tutto — continua così.',
       'Fantastico! Il tuo corpo ti ringrazierà.',
-      'Brava Annamaria! Giornata al 100%!',
+      'Brava Annamaria! Giornata al 100%! 🎉',
     ];
     celText.innerHTML = messages[Math.floor(Math.random()*messages.length)];
   }
