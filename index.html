@@ -883,16 +883,38 @@ function renderMain() {
       const isDone = checked[carryKey];
       const isWorkout = c.type === 'workout';
       const fromDayName = DAY_FULL_NAMES[c.fromDay] || `Giorno ${c.fromDay + 1}`;
-      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);cursor:pointer;" onclick="toggleCarryover('${carryKey}')">
-        <div style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">${isWorkout?'🏋️ ':''} ${c.item.name}</div>
-          <div style="font-size:11px;color:#BA7517;">recuperato da ${fromDayName}</div>
-        </div>
-        ${isDone ? '' : `<div style="font-size:10px;background:#BA7517;color:white;padding:3px 8px;border-radius:8px;font-weight:500;">fatto ✓</div>`}
-      </div>`;
+
+      if (isWorkout) {
+        // Workout carryover — find the original day data to show it
+        const origDay = DAYS[c.item.workoutDay !== undefined ? c.item.workoutDay : c.fromDay];
+        html += `<div style="padding:8px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:${isDone?'0':'8px'};">
+            <div onclick="toggleCarryover('${carryKey}')" style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
+              ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">🏋️ ${c.item.name}</div>
+              <div style="font-size:11px;color:#BA7517;">recuperato da ${fromDayName}</div>
+            </div>
+          </div>
+          ${!isDone && origDay ? `
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              ${origDay.homeUrl ? `<a href="${origDay.homeUrl}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#7F77DD;color:white;padding:8px;border-radius:9px;font-size:12px;font-weight:500;text-decoration:none;">📱 Fallo da casa</a>` : ''}
+              <button onclick="goToWorkoutDay(${c.fromDay})" style="flex:1;background:#D4537E;color:white;border:none;border-radius:9px;padding:8px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">🏋️ Vedi scheda</button>
+            </div>
+          ` : ''}
+        </div>`;
+      } else {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid rgba(186,117,23,0.15);cursor:pointer;" onclick="toggleCarryover('${carryKey}')">
+          <div style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${isDone?'#1D9E75':'rgba(186,117,23,0.4)'};background:${isDone?'#1D9E75':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:500;color:#633806;${isDone?'text-decoration:line-through;opacity:0.5;':''}">${c.item.name}</div>
+            <div style="font-size:11px;color:#BA7517;">recuperato da ${fromDayName}</div>
+          </div>
+        </div>`;
+      }
     });
     html += `</div>`;
   }
@@ -1079,6 +1101,15 @@ function toggleCarryover(key) {
   renderMain();
 }
 
+function goToWorkoutDay(dayIdx) {
+  // Show the workout from the original day in a modal-style overlay on current day
+  // Simplest approach: navigate to that day so user can see and do the workout
+  currentDay = dayIdx;
+  saveState();
+  render();
+  window.scrollTo(0,0);
+}
+
 function confirmReset() {
   if (confirm('Sei sicura di voler resettare tutto? Perderai tutti i progressi salvati.')) {
     localStorage.removeItem('bdf_state');
@@ -1151,10 +1182,10 @@ function markDayComplete() {
   }
 
   if (!carryovers) carryovers = {};
-  missed.forEach((m, mi) => {
-    const targetDay = (currentDay + 1 + (mi % 2)) % 7;
+  missed.forEach((m) => {
+    // Workout always goes to next day only
+    const targetDay = (currentDay + 1) % 7;
     if (!carryovers[targetDay]) carryovers[targetDay] = [];
-    // Avoid duplicates
     const exists = carryovers[targetDay].some(c => c.item.name === m.item.name && c.fromDay === m.fromDay);
     if (!exists) carryovers[targetDay].push(m);
   });
